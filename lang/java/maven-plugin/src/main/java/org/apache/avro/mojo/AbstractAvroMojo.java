@@ -20,8 +20,9 @@ package org.apache.avro.mojo;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.*;
 
+import org.apache.avro.SchemaParseException;
 import org.apache.avro.compiler.specific.SpecificCompiler;
 
 import org.apache.maven.plugin.AbstractMojo;
@@ -218,9 +219,23 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
   }
 
   private void compileFiles(String[] files, File sourceDir, File outDir) throws MojoExecutionException {
-    for (String filename : files) {
+    Queue<String> pendingFiles = new LinkedList<>(Arrays.asList(files));
+    Set<String> filesAlreadyRetried = new HashSet<>();
+
+    String filename;
+    while ((filename = pendingFiles.poll()) != null) {
       try {
         doCompile(filename, sourceDir, outDir);
+        filesAlreadyRetried.clear();
+        getLog().info("Sources generated for: " + filename);
+      } catch (SchemaParseException e) {
+        if (filesAlreadyRetried.contains(filename)) {
+          throw new MojoExecutionException("Error compiling protocol file " + filename + " to " + outDir, e);
+        } else {
+          getLog().warn("Will retry " + filename + " after all other files are processed");
+          pendingFiles.add(filename);
+          filesAlreadyRetried.add(filename);
+        }
       } catch (IOException e) {
         throw new MojoExecutionException("Error compiling protocol file "
             + filename + " to " + outDir, e);

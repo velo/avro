@@ -22,8 +22,12 @@ import org.apache.avro.generic.GenericData.StringType;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Parser;
 import org.apache.avro.compiler.specific.SpecificCompiler;
 
 /**
@@ -61,17 +65,10 @@ public class SchemaMojo extends AbstractAvroMojo {
   @Override
   protected void doCompile(String filename, File sourceDirectory, File outputDirectory) throws IOException {
     File src = new File(sourceDirectory, filename);
-    Schema schema;
-
-    // This is necessary to maintain backward-compatibility. If there are
-    // no imported files then isolate the schemas from each other, otherwise
-    // allow them to share a single schema so resuse and sharing of schema
-    // is possible.
-    if (imports == null) {
-      schema = new Schema.Parser().parse(src);
-    } else {
-      schema = schemaParser.parse(src);
-    }
+    Parser localSchemaParser = new Schema.Parser();
+    Map<String, Schema> types = schemaParser.getTypes();
+    localSchemaParser.addTypes(types);
+    Schema schema = localSchemaParser.parse(src);
 
     SpecificCompiler compiler = new SpecificCompiler(schema);
     compiler.setTemplateDir(templateDirectory);
@@ -81,6 +78,12 @@ public class SchemaMojo extends AbstractAvroMojo {
     compiler.setEnableDecimalLogicalType(enableDecimalLogicalType);
     compiler.setOutputCharacterEncoding(project.getProperties().getProperty("project.build.sourceEncoding"));
     compiler.compileToDestination(src, outputDirectory);
+
+    Map<String, Schema> newTypes = localSchemaParser.getTypes().values().stream()
+        .filter(candidate -> !types.containsValue(candidate))
+        .collect(Collectors.toMap(Schema::getFullName, Function.identity()));
+
+    this.schemaParser.addTypes(newTypes);
   }
 
   @Override
