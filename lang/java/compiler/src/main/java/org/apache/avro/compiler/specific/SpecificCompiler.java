@@ -110,6 +110,7 @@ public class SpecificCompiler {
   private String outputCharacterEncoding;
   private boolean enableDecimalLogicalType = false;
   private String suffix = ".java";
+  private boolean generateSerializableClasses = true;
 
   /*
    * Used in the record.vm template.
@@ -225,7 +226,18 @@ public class SpecificCompiler {
     this.enableDecimalLogicalType = enableDecimalLogicalType;
   }
 
-  private static String logChuteName = null;
+  public boolean isGenerateSerializableClasses() {
+    return generateSerializableClasses;
+  }
+
+  /**
+   * Set to false to not create support code for java serialization introduced on AVRO-1502.
+   */
+  public void setGenerateSerializableClasses(boolean generateSerializableClasses) {
+    this.generateSerializableClasses = generateSerializableClasses;
+  }
+
+private static String logChuteName = null;
 
   private void initializeVelocity() {
     this.velocityEngine = new VelocityEngine();

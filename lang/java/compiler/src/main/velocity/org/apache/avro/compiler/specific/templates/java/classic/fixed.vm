@@ -46,6 +46,7 @@ public class ${this.mangle($schema.getName())} extends org.apache.avro.specific.
     super(bytes);
   }
 
+#if ($this.generateSerializableClasses)
   private static final org.apache.avro.io.DatumWriter
     WRITER$ = new org.apache.avro.specific.SpecificDatumWriter<${this.mangle($schema.getName())}>(SCHEMA$);
 
@@ -61,5 +62,6 @@ public class ${this.mangle($schema.getName())} extends org.apache.avro.specific.
     throws java.io.IOException {
     READER$.read(this, org.apache.avro.specific.SpecificData.getDecoder(in));
   }
+#end
 
 }

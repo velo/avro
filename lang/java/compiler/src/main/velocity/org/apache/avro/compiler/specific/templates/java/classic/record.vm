@@ -21,8 +21,11 @@ package $schema.getNamespace();
 
 import org.apache.avro.specific.SpecificData;
 #if (!$schema.isError())
+
+#if ($this.generateSerializableClasses)
 import org.apache.avro.message.BinaryMessageEncoder;
 import org.apache.avro.message.BinaryMessageDecoder;
+#end
 import org.apache.avro.message.SchemaStore;
 #end
 
@@ -41,7 +44,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 
   private static SpecificData MODEL$ = new SpecificData();
 
-#if (!$schema.isError())
+#if (!$schema.isError() && $this.generateSerializableClasses)
   private static final BinaryMessageEncoder<${this.mangle($schema.getName())}> ENCODER =
       new BinaryMessageEncoder<${this.mangle($schema.getName())}>(MODEL$, SCHEMA$);
 
@@ -447,6 +450,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
     }
   }
 
+#if ($this.generateSerializableClasses)
   @SuppressWarnings("unchecked")
   private static final org.apache.avro.io.DatumWriter<${this.mangle($schema.getName())}>
     WRITER$ = (org.apache.avro.io.DatumWriter<${this.mangle($schema.getName())}>)MODEL$.createDatumWriter(SCHEMA$);
@@ -464,5 +468,6 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
     throws java.io.IOException {
     READER$.read(this, SpecificData.getDecoder(in));
   }
+#end
 
 }

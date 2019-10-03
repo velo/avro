@@ -139,6 +139,13 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
    */
   protected MavenProject project;
 
+  /**
+   * Determines whether or not to create support code for java serialization introduced on AVRO-1502.
+   *
+   * @parameter default-value="true"
+   */
+  protected boolean generateSerializableClasses;
+
   @Override
   public void execute() throws MojoExecutionException {
     boolean hasSourceDir = null != sourceDirectory
