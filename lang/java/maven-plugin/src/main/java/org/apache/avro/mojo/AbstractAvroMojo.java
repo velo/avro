@@ -239,7 +239,8 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
         if (filesAlreadyRetried.contains(filename)) {
           throw new MojoExecutionException("Error compiling protocol file " + filename + " to " + outDir, e);
         } else {
-          getLog().warn("Will retry " + filename + " after all other files are processed");
+          getLog().warn("Will retry " + filename + " after all other files are processed: " + e.getMessage());
+          getLog().debug("Error while compiling " + filename, e);
           pendingFiles.add(filename);
           filesAlreadyRetried.add(filename);
         }
