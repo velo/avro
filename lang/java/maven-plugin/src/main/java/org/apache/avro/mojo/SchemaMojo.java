@@ -78,6 +78,7 @@ public class SchemaMojo extends AbstractAvroMojo {
     compiler.setEnableDecimalLogicalType(enableDecimalLogicalType);
     compiler.setOutputCharacterEncoding(project.getProperties().getProperty("project.build.sourceEncoding"));
     compiler.setGenerateSerializableClasses(generateSerializableClasses);
+    compiler.setGeneratorIdentification(pluginIdentification());
     compiler.compileToDestination(src, outputDirectory);
 
     Map<String, Schema> newTypes = localSchemaParser.getTypes().values().stream()

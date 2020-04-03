@@ -111,6 +111,7 @@ public class SpecificCompiler {
   private boolean enableDecimalLogicalType = false;
   private String suffix = ".java";
   private boolean generateSerializableClasses = true;
+  private String generatorIdentification = SpecificCompiler.class.getSimpleName();
 
   /*
    * Used in the record.vm template.
@@ -237,7 +238,15 @@ public class SpecificCompiler {
     this.generateSerializableClasses = generateSerializableClasses;
   }
 
-private static String logChuteName = null;
+  public String getGeneratorIdentification() {
+    return generatorIdentification;
+  }
+
+  public void setGeneratorIdentification(String generatorIdentification) {
+    this.generatorIdentification = generatorIdentification;
+  }
+
+  private static String logChuteName = null;
 
   private void initializeVelocity() {
     this.velocityEngine = new VelocityEngine();

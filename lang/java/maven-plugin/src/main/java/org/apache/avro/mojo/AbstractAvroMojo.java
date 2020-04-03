@@ -18,18 +18,18 @@
 
 package org.apache.avro.mojo;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
 import org.apache.avro.SchemaParseException;
 import org.apache.avro.compiler.specific.SpecificCompiler;
-
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Base for Avro Compiler Mojos.
@@ -265,5 +265,14 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
   protected abstract String[] getIncludes();
 
   protected abstract String[] getTestIncludes();
+
+  protected String pluginIdentification() {
+    for (Plugin plugin : project.getBuildPlugins()) {
+      if (plugin.getArtifactId().equals("avro-maven-plugin")) {
+        return String.format("%s:%s:%s", plugin.getGroupId(), plugin.getArtifactId(), plugin.getVersion());
+      }
+    }
+    return "avro-maven-plugin";
+  }
 
 }

@@ -62,6 +62,8 @@ public class ProtocolMojo extends AbstractAvroMojo {
     compiler.setFieldVisibility(getFieldVisibility());
     compiler.setCreateSetters(createSetters);
     compiler.setEnableDecimalLogicalType(enableDecimalLogicalType);
+    compiler.setGenerateSerializableClasses(generateSerializableClasses);
+    compiler.setGeneratorIdentification(pluginIdentification());
     compiler.compileToDestination(src, outputDirectory);
   }
 
