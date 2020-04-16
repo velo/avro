@@ -199,15 +199,17 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
   }
 
 #if ($this.createSetters)
+#foreach ($parameter_schema in ${this.toSchemaList($field.schema())})
   /**
    * Sets the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())   * $field.doc()
 #end
    * @param value the value to set.
    */
-  public void ${this.generateSetMethod($schema, $field)}(${this.javaType($field.schema())} value) {
+  public void ${this.generateSetMethod($schema, $field)}(${this.javaType($parameter_schema)} value) {
     this.${this.mangle($field.name(), $schema.isError())} = value;
   }
+#end
 #end
 
 #end
@@ -333,6 +335,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
       return ${this.mangle($field.name(), $schema.isError())};
     }
 
+#foreach ($parameter_schema in ${this.toSchemaList($field.schema())})
     /**
       * Sets the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())      * $field.doc()
@@ -340,7 +343,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
       * @param value The value of '${this.mangle($field.name(), $schema.isError())}'.
       * @return This builder.
       */
-    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetMethod($schema, $field)}(${this.javaUnbox($field.schema())} value) {
+    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetMethod($schema, $field)}(${this.javaUnbox($parameter_schema)} value) {
       validate(fields()[$field.pos()], value);
 #if (${this.hasBuilder($field.schema())})
       this.${this.mangle($field.name(), $schema.isError())}Builder = null;
@@ -349,6 +352,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
       fieldSetFlags()[$field.pos()] = true;
       return this;
     }
+#end
 
     /**
       * Checks whether the '${this.mangle($field.name(), $schema.isError())}' field has been set.

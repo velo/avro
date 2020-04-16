@@ -79,6 +79,7 @@ public class SchemaMojo extends AbstractAvroMojo {
     compiler.setOutputCharacterEncoding(project.getProperties().getProperty("project.build.sourceEncoding"));
     compiler.setGenerateSerializableClasses(generateSerializableClasses);
     compiler.setGeneratorIdentification(pluginIdentification());
+    compiler.setOverloadSetters(overloadSetters);
     compiler.compileToDestination(src, outputDirectory);
 
     Map<String, Schema> newTypes = localSchemaParser.getTypes().values().stream()

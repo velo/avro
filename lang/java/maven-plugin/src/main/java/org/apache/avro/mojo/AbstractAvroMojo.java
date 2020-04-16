@@ -146,6 +146,13 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
    */
   protected boolean generateSerializableClasses;
 
+  /**
+   * Determines if setters should be overloaded on unions
+   *
+   * @parameter default-value="false"
+   */
+  protected boolean overloadSetters;
+
   @Override
   public void execute() throws MojoExecutionException {
     boolean hasSourceDir = null != sourceDirectory

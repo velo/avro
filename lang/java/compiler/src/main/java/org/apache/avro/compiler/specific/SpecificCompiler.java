@@ -33,6 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.avro.Conversion;
 import org.apache.avro.Conversions;
@@ -47,6 +48,7 @@ import org.apache.avro.Protocol;
 import org.apache.avro.Protocol.Message;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
+import org.apache.avro.Schema.Type;
 import org.apache.avro.SchemaNormalization;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.generic.GenericData;
@@ -112,6 +114,7 @@ public class SpecificCompiler {
   private String suffix = ".java";
   private boolean generateSerializableClasses = true;
   private String generatorIdentification = SpecificCompiler.class.getSimpleName();
+  private boolean overloadSetters = false;
 
   /*
    * Used in the record.vm template.
@@ -1020,5 +1023,30 @@ public class SpecificCompiler {
   public void setOutputCharacterEncoding(String outputCharacterEncoding) {
     this.outputCharacterEncoding = outputCharacterEncoding;
   }
+
+  public List<Schema> toSchemaList(Schema schema) {
+    if (overloadSetters && schema.getType().equals(Type.UNION)) {
+      final boolean hasNull = schema.getTypes().stream().anyMatch(type -> type.equals(Schema.create(Schema.Type.NULL)));
+      if (hasNull) {
+        if (schema.getTypes().size() == 2) {
+          return Arrays.asList(schema);
+        }
+
+        final List<Schema> types = schema.getTypes().stream().filter(type -> !type.equals(Schema.create(Schema.Type.NULL)))
+            .map(type -> Schema.createUnion(type, Schema.create(Schema.Type.NULL))).collect(Collectors.toList());
+        types.add(schema);
+        return types;
+      } else {
+        return schema.getTypes();
+      }
+    }
+
+    return Arrays.asList(schema);
+  }
+
+  public void setOverloadSetters(boolean overloadSetters) {
+    this.overloadSetters = overloadSetters;
+  }
+
 }
 
