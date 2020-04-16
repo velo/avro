@@ -153,6 +153,14 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
    */
   protected boolean overloadSetters;
 
+  /**
+   * The getter and setters with Optinal if the schema is an union between NULL
+   * and one more schema. This works ONLY on Java 8+
+   *
+   * @parameter property="useOptionalsForNullables"
+   */
+  protected boolean useOptionalsForNullables = false;
+
   @Override
   public void execute() throws MojoExecutionException {
     boolean hasSourceDir = null != sourceDirectory

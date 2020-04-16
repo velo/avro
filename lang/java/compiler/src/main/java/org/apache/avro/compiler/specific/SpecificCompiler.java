@@ -115,6 +115,7 @@ public class SpecificCompiler {
   private boolean generateSerializableClasses = true;
   private String generatorIdentification = SpecificCompiler.class.getSimpleName();
   private boolean overloadSetters = false;
+  private boolean useOptionalsForNullables = false;
 
   /*
    * Used in the record.vm template.
@@ -248,6 +249,15 @@ public class SpecificCompiler {
   public void setGeneratorIdentification(String generatorIdentification) {
     this.generatorIdentification = generatorIdentification;
   }
+
+  public void setUseOptionalsForNullables(boolean useOptionalsForNullables) {
+    this.useOptionalsForNullables = useOptionalsForNullables;
+  }
+
+  public boolean isUseOptionalsForNullables() {
+    return useOptionalsForNullables;
+  }
+
 
   private static String logChuteName = null;
 
@@ -1046,6 +1056,14 @@ public class SpecificCompiler {
 
   public void setOverloadSetters(boolean overloadSetters) {
     this.overloadSetters = overloadSetters;
+  }
+
+  public boolean isNullableUnion(Schema schema) {
+    if (schema.getType().equals(Type.UNION)) {
+      final boolean hasNull = schema.getTypes().stream().anyMatch(type -> type.equals(Schema.create(Schema.Type.NULL)));
+      return (hasNull && schema.getTypes().size() == 2);
+    }
+    return false;
   }
 
 }

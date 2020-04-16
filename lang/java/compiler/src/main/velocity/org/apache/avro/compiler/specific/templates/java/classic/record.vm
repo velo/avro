@@ -28,6 +28,7 @@ import org.apache.avro.message.BinaryMessageDecoder;
 #end
 import org.apache.avro.message.SchemaStore;
 #end
+#if (${this.useOptionalsForNullables})import java.util.Optional;#end
 
 @SuppressWarnings("all")
 #if ($schema.getDoc())
@@ -194,8 +195,13 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #else   * @return The value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #end
    */
+#if (${this.useOptionalsForNullables} && $this.isNullableUnion($field.schema()))
+  public Optional<${this.javaType($field.schema())}> ${this.generateGetMethod($schema, $field)}() {
+    return Optional.<${this.javaType($field.schema())}>ofNullable(${this.mangle($field.name(), $schema.isError())});
+#else
   public ${this.javaType($field.schema())} ${this.generateGetMethod($schema, $field)}() {
     return ${this.mangle($field.name(), $schema.isError())};
+#end
   }
 
 #if ($this.createSetters)
@@ -349,6 +355,25 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
       this.${this.mangle($field.name(), $schema.isError())}Builder = null;
 #end
       this.${this.mangle($field.name(), $schema.isError())} = value;
+      fieldSetFlags()[$field.pos()] = true;
+      return this;
+    }
+#end
+
+#if (${this.useOptionalsForNullables} && $this.isNullableUnion($field.schema()))
+    /**
+      * Sets the value of the '${this.mangle($field.name(), $schema.isError())}' field.
+#if ($field.doc())      * $field.doc()
+#end
+      * @param value The value of '${this.mangle($field.name(), $schema.isError())}'.
+      * @return This builder.
+      */
+    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetMethod($schema, $field)}(Optional<${this.javaType($field.schema())}> value) {
+      validate(fields()[$field.pos()], value.orElse(null));
+#if (${this.hasBuilder($field.schema())})
+      this.${this.mangle($field.name(), $schema.isError())}Builder = null;
+#end
+      this.${this.mangle($field.name(), $schema.isError())} = value.orElse(null);
       fieldSetFlags()[$field.pos()] = true;
       return this;
     }
