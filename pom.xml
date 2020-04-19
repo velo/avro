@@ -51,6 +51,8 @@
       <groupId>org.apache.avro</groupId>
       <artifactId>avro-compiler</artifactId>
       <version>${avro.version}</version>
+      <!-- only include the dependencies, not the code -->
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.apache.ant</groupId>
@@ -178,6 +180,8 @@
             <configuration>
               <sources>
                 <source>lang/java/compiler/src/main/java</source>
+                <source>target/generated-sources/plugin</source>
+                <source>target/generated-sources/javacc</source>
               </sources>
             </configuration>
           </execution>
@@ -218,6 +222,25 @@
           </excludes>
           <trimStackTrace>false</trimStackTrace>
         </configuration>
+      </plugin>
+      <!-- Avro generates a parser class with javacc. By default, this looks in src/main/javacc
+        and outputs to target/generated-sources/javacc See http://mojo.codehaus.org/javacc-maven-plugin/javacc-mojo.html
+        for more info on using this plugin. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>javacc-maven-plugin</artifactId>
+        <configuration>
+          <sourceDirectory>lang/java/compiler/src/main/javacc</sourceDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <id>javacc</id>
+            <goals>
+              <goal>javacc</goal>
+            </goals>
+            <phase>generate-sources</phase>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
