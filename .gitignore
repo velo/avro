@@ -13,3 +13,5 @@ target
 /build
 test-output
 /dist
+bin/
+pom.xml.versionsBackup
