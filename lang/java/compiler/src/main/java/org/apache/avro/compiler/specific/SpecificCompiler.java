@@ -640,6 +640,8 @@ public class SpecificCompiler {
         + javaType(schema.getValueType()) + ">";
     case UNION:
       List<Schema> types = schema.getTypes(); // elide unions with null
+      if (types.size() == 1)
+        return javaType(types.get(0));
       if ((types.size() == 2) && types.contains(NULL_SCHEMA))
         return javaType(types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0));
       return "java.lang.Object";
