@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypes;
+import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Parser;
 import org.apache.avro.compiler.specific.SpecificCompiler;
@@ -64,6 +67,11 @@ public class SchemaMojo extends AbstractAvroMojo {
 
   @Override
   protected void doCompile(String filename, File sourceDirectory, File outputDirectory) throws IOException {
+    super.logicalTypeFactories().forEach(
+        LogicalTypes::register
+    );
+
+
     File src = new File(sourceDirectory, filename);
     Parser localSchemaParser = new Schema.Parser();
     Map<String, Schema> types = schemaParser.getTypes();
@@ -71,6 +79,7 @@ public class SchemaMojo extends AbstractAvroMojo {
     Schema schema = localSchemaParser.parse(src);
 
     SpecificCompiler compiler = new SpecificCompiler(schema);
+    super.conversions().forEach(compiler::addLogicalTypeConversion);
     compiler.setTemplateDir(templateDirectory);
     compiler.setStringType(StringType.valueOf(stringType));
     compiler.setFieldVisibility(getFieldVisibility());

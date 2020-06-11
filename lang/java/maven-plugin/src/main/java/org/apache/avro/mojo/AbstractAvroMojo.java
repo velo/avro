@@ -18,6 +18,9 @@
 
 package org.apache.avro.mojo;
 
+import org.apache.avro.Conversion;
+import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.SchemaParseException;
 import org.apache.avro.compiler.specific.SpecificCompiler;
 import org.apache.maven.model.Plugin;
@@ -30,6 +33,7 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Base for Avro Compiler Mojos.
@@ -161,6 +165,13 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
    */
   protected boolean useOptionalsForNullables = false;
 
+  /**
+   * Add extra logical types to avro compiler
+   *
+   * @parameter
+   */
+  private String[] extraLogicalTypes = new String[0];
+
   @Override
   public void execute() throws MojoExecutionException {
     boolean hasSourceDir = null != sourceDirectory
@@ -288,6 +299,44 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
       }
     }
     return "avro-maven-plugin";
+  }
+
+  public List<Conversion> conversions() {
+      if(extraLogicalTypes == null) {
+          return new ArrayList<>();
+      }
+
+    return Arrays.stream(extraLogicalTypes)
+            .map(classname -> loadClass(Conversion.class, "Conversion", classname))
+            .collect(Collectors.toList());
+  }
+
+  private <E> E loadClass(Class<E> targetType, String suffix, String classname) {
+      classname = classname + suffix;
+      Class<E> logicalClass;
+      try {
+          logicalClass = (Class<E>) getClass().getClassLoader().loadClass(classname);
+      } catch (ClassNotFoundException e1) {
+          throw new IllegalStateException("Conversion not found on classpath " + classname + " make sure class is public and added to plugin dependencies");
+      }
+
+      try {
+          return (E) logicalClass.newInstance();
+      } catch (InstantiationException | IllegalAccessException e) {
+        throw new IllegalStateException("Unable to create new instance of " + classname + " make sure class have a public constructor");
+      }
+      }
+
+  public Map<String, LogicalTypeFactory> logicalTypeFactories() {
+    if(extraLogicalTypes == null) {
+      return new HashMap<>();
+    }
+
+    return Arrays.stream(extraLogicalTypes)
+              .collect(Collectors.toMap(
+                      classname ->              loadClass(LogicalType.class, "LogicalType", classname).getName(),
+                      classname ->  loadClass(LogicalTypeFactory.class, "LogicalTypeFactory", classname)
+                      ));
   }
 
 }

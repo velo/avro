@@ -35,22 +35,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.avro.Conversion;
-import org.apache.avro.Conversions;
-import org.apache.avro.LogicalTypes;
 import org.apache.avro.data.TimeConversions.DateConversion;
 import org.apache.avro.data.TimeConversions.TimeConversion;
 import org.apache.avro.data.TimeConversions.TimestampConversion;
 import org.apache.avro.specific.SpecificData;
 import org.codehaus.jackson.JsonNode;
-
-import org.apache.avro.Protocol;
 import org.apache.avro.Protocol.Message;
-import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
-import org.apache.avro.SchemaNormalization;
-import org.apache.avro.JsonProperties;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.StringType;
 import org.apache.velocity.Template;
@@ -62,6 +54,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.apache.avro.specific.SpecificData.RESERVED_WORDS;
+
+import org.apache.avro.*;
 
 /**
  * Generate specific Java interfaces and classes for protocols and schemas.
@@ -558,7 +552,10 @@ public class SpecificCompiler {
     switch (s.getType()) {
     case STRING:
       result = Schema.create(Schema.Type.STRING);
-      GenericData.setStringType(result, stringType);
+      if(s.getLogicalType() == null) {
+        // logical types do not accept avro.java.string
+        GenericData.setStringType(result, stringType);
+      }
       break;
     case RECORD:
       result =
@@ -597,6 +594,11 @@ public class SpecificCompiler {
     }
     for (Map.Entry<String,JsonNode> p : s.getJsonProps().entrySet())
       result.addProp(p.getKey(), p.getValue());   // copy props
+
+    if(s.getLogicalType() != null) {
+      s.getLogicalType().addToSchema(result);
+    }
+
     seen.put(s, result);
     return result;
   }
@@ -659,13 +661,9 @@ public class SpecificCompiler {
   }
 
   private String getConvertedLogicalType(Schema schema) {
-    if (enableDecimalLogicalType
-        || !(schema.getLogicalType() instanceof LogicalTypes.Decimal)) {
-      Conversion<?> conversion = SPECIFIC
-          .getConversionFor(schema.getLogicalType());
-      if (conversion != null) {
-        return conversion.getConvertedType().getName();
-      }
+    Conversion<?> conversion = SPECIFIC.getConversionFor(schema.getLogicalType());
+    if (conversion != null) {
+      return conversion.getConvertedType().getName();
     }
     return null;
   }
@@ -709,6 +707,11 @@ public class SpecificCompiler {
       return "TIMESTAMP_CONVERSION";
     } else if (LogicalTypes.Decimal.class.equals(schema.getLogicalType().getClass())) {
       return enableDecimalLogicalType ? "DECIMAL_CONVERSION" : "null";
+    }
+
+    Conversion<?> conversion = SPECIFIC.getConversionFor(schema.getLogicalType());
+    if(conversion != null) {
+        return "new " + conversion.getClass().getName() + "()";
     }
 
     return "null";
@@ -1066,6 +1069,10 @@ public class SpecificCompiler {
       return (hasNull && schema.getTypes().size() == 2);
     }
     return false;
+  }
+
+  public void addLogicalTypeConversion(Conversion<?> conversion) {
+    SPECIFIC.addLogicalTypeConversion(conversion);
   }
 
 }
