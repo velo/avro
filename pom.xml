@@ -23,7 +23,7 @@
 
   <groupId>com.marvinformatics.avro</groupId>
   <artifactId>avro-maven-plugin</artifactId>
-  <version>1.8.2-6-SNAPSHOT</version>
+  <version>1.8.2-6</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Avro Maven Plugin</name>
