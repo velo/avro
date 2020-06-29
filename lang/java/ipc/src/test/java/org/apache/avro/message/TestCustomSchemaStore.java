@@ -7,7 +7,11 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
+<<<<<<< HEAD
  *   http://www.apache.org/licenses/LICENSE-2.0
+=======
+ *   https://www.apache.org/licenses/LICENSE-2.0
+>>>>>>> 1.9.2
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -35,6 +39,10 @@ public class TestCustomSchemaStore {
 
   static class CustomSchemaStore implements SchemaStore {
     Cache cache;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1.9.2
     CustomSchemaStore() {
       cache = new Cache();
       cache.addSchema(NestedEvolve1.getClassSchema());
@@ -62,7 +70,11 @@ public class TestCustomSchemaStore {
     // Should work
     assertEquals(nestedEvolve1.getRootName(), "RootName");
     assertEquals(nestedEvolve1.getNested().getName(), "Name");
+<<<<<<< HEAD
     assertEquals(nestedEvolve1.getNested().getValue(), Long.valueOf(1));
+=======
+    assertEquals(nestedEvolve1.getNested().getValue(), 1);
+>>>>>>> 1.9.2
   }
 
   @Test(expected = MissingSchemaException.class)
@@ -72,7 +84,12 @@ public class TestCustomSchemaStore {
     rootBuilder.setNested(TestRecord3.newBuilder().setName("Name").setData("Data").build());
     ByteBuffer nestedEvolve3Buffer = rootBuilder.build().toByteBuffer();
 
+<<<<<<< HEAD
     // Decode it ... should fail because schema for 'NestedEvolve3' is not available in the SchemaStore
+=======
+    // Decode it ... should fail because schema for 'NestedEvolve3' is not available
+    // in the SchemaStore
+>>>>>>> 1.9.2
     decoder.decode(nestedEvolve3Buffer);
   }
 

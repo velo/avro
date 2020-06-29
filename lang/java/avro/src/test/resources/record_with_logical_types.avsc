@@ -1,7 +1,11 @@
 {
   "type" : "record",
   "name" : "TestRecordWithLogicalTypes",
+<<<<<<< HEAD
   "doc" : "Schema for TestRecordWithLogicalTypes and TestRecordWithoutLogicalTypes, see TestSpecificLogicalTypes"
+=======
+  "doc" : "Schema for TestRecordWithLogicalTypes and TestRecordWithoutLogicalTypes, see TestSpecificLogicalTypes",
+>>>>>>> 1.9.2
   "namespace" : "org.apache.avro.specific",
   "fields" : [ {
     "name" : "b",

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,9 +18,10 @@
 package org.apache.avro;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.apache.avro.ipc.RPCContext;
 import org.apache.avro.ipc.RPCPlugin;
@@ -30,8 +31,13 @@ import org.apache.avro.ipc.RPCPlugin;
  * This plugin tests handshake and call state by passing a string as metadata,
  * slowly building it up at each instrumentation point, testing it as it goes.
  * Finally, after the call or handshake is complete, the constructed string is
+<<<<<<< HEAD
  * tested. It also tests that RPC context data is appropriately filled in
  * along the way by Requestor and Responder classes.
+=======
+ * tested. It also tests that RPC context data is appropriately filled in along
+ * the way by Requestor and Responder classes.
+>>>>>>> 1.9.2
  */
 public final class RPCMetaTestPlugin extends RPCPlugin {
 
@@ -43,7 +49,7 @@ public final class RPCMetaTestPlugin extends RPCPlugin {
 
   @Override
   public void clientStartConnect(RPCContext context) {
-    ByteBuffer buf = ByteBuffer.wrap("ap".getBytes());
+    ByteBuffer buf = ByteBuffer.wrap("ap".getBytes(StandardCharsets.UTF_8));
     context.requestHandshakeMeta().put(key, buf);
   }
 
@@ -55,40 +61,70 @@ public final class RPCMetaTestPlugin extends RPCPlugin {
     Assert.assertNull(context.getRequestPayload());
     Assert.assertNull(context.getResponsePayload());
 
+<<<<<<< HEAD
     if (!context.requestHandshakeMeta().containsKey(key)) return;
+=======
+    if (!context.requestHandshakeMeta().containsKey(key))
+      return;
+>>>>>>> 1.9.2
 
     ByteBuffer buf = context.requestHandshakeMeta().get(key);
     Assert.assertNotNull(buf);
     Assert.assertNotNull(buf.array());
 
+<<<<<<< HEAD
     String partialstr = new String(buf.array());
     Assert.assertNotNull(partialstr);
     Assert.assertEquals("partial string mismatch", "ap", partialstr);
 
     buf = ByteBuffer.wrap((partialstr + "ac").getBytes());
+=======
+    String partialstr = new String(buf.array(), StandardCharsets.UTF_8);
+    Assert.assertNotNull(partialstr);
+    Assert.assertEquals("partial string mismatch", "ap", partialstr);
+
+    buf = ByteBuffer.wrap((partialstr + "ac").getBytes(StandardCharsets.UTF_8));
+>>>>>>> 1.9.2
     Assert.assertTrue(buf.remaining() > 0);
     context.responseHandshakeMeta().put(key, buf);
   }
 
   @Override
   public void clientFinishConnect(RPCContext context) {
+<<<<<<< HEAD
     Map<String,ByteBuffer> handshakeMeta = context.responseHandshakeMeta();
+=======
+    Map<String, ByteBuffer> handshakeMeta = context.responseHandshakeMeta();
+>>>>>>> 1.9.2
 
     Assert.assertNull(context.getRequestPayload());
     Assert.assertNull(context.getResponsePayload());
     Assert.assertNotNull(handshakeMeta);
 
+<<<<<<< HEAD
     if (!handshakeMeta.containsKey(key)) return;
+=======
+    if (!handshakeMeta.containsKey(key))
+      return;
+>>>>>>> 1.9.2
 
     ByteBuffer buf = handshakeMeta.get(key);
     Assert.assertNotNull(buf);
     Assert.assertNotNull(buf.array());
 
+<<<<<<< HEAD
     String partialstr = new String(buf.array());
     Assert.assertNotNull(partialstr);
     Assert.assertEquals("partial string mismatch", "apac", partialstr);
 
     buf = ByteBuffer.wrap((partialstr + "he").getBytes());
+=======
+    String partialstr = new String(buf.array(), StandardCharsets.UTF_8);
+    Assert.assertNotNull(partialstr);
+    Assert.assertEquals("partial string mismatch", "apac", partialstr);
+
+    buf = ByteBuffer.wrap((partialstr + "he").getBytes(StandardCharsets.UTF_8));
+>>>>>>> 1.9.2
     Assert.assertTrue(buf.remaining() > 0);
     handshakeMeta.put(key, buf);
 
@@ -97,7 +133,11 @@ public final class RPCMetaTestPlugin extends RPCPlugin {
 
   @Override
   public void clientSendRequest(RPCContext context) {
+<<<<<<< HEAD
     ByteBuffer buf = ByteBuffer.wrap("ap".getBytes());
+=======
+    ByteBuffer buf = ByteBuffer.wrap("ap".getBytes(StandardCharsets.UTF_8));
+>>>>>>> 1.9.2
     context.requestCallMeta().put(key, buf);
     Assert.assertNotNull(context.getMessage());
     Assert.assertNotNull(context.getRequestPayload());
@@ -106,23 +146,40 @@ public final class RPCMetaTestPlugin extends RPCPlugin {
 
   @Override
   public void serverReceiveRequest(RPCContext context) {
+<<<<<<< HEAD
     Map<String,ByteBuffer> meta = context.requestCallMeta();
+=======
+    Map<String, ByteBuffer> meta = context.requestCallMeta();
+>>>>>>> 1.9.2
 
     Assert.assertNotNull(meta);
     Assert.assertNotNull(context.getMessage());
     Assert.assertNull(context.getResponsePayload());
 
+<<<<<<< HEAD
     if (!meta.containsKey(key)) return;
+=======
+    if (!meta.containsKey(key))
+      return;
+>>>>>>> 1.9.2
 
     ByteBuffer buf = meta.get(key);
     Assert.assertNotNull(buf);
     Assert.assertNotNull(buf.array());
 
+<<<<<<< HEAD
     String partialstr = new String(buf.array());
     Assert.assertNotNull(partialstr);
     Assert.assertEquals("partial string mismatch", "ap", partialstr);
 
     buf = ByteBuffer.wrap((partialstr + "a").getBytes());
+=======
+    String partialstr = new String(buf.array(), StandardCharsets.UTF_8);
+    Assert.assertNotNull(partialstr);
+    Assert.assertEquals("partial string mismatch", "ap", partialstr);
+
+    buf = ByteBuffer.wrap((partialstr + "a").getBytes(StandardCharsets.UTF_8));
+>>>>>>> 1.9.2
     Assert.assertTrue(buf.remaining() > 0);
     meta.put(key, buf);
   }
@@ -134,17 +191,30 @@ public final class RPCMetaTestPlugin extends RPCPlugin {
 
     Assert.assertNotNull(context.getResponsePayload());
 
+<<<<<<< HEAD
     if (!context.requestCallMeta().containsKey(key)) return;
+=======
+    if (!context.requestCallMeta().containsKey(key))
+      return;
+>>>>>>> 1.9.2
 
     ByteBuffer buf = context.requestCallMeta().get(key);
     Assert.assertNotNull(buf);
     Assert.assertNotNull(buf.array());
 
+<<<<<<< HEAD
     String partialstr = new String(buf.array());
     Assert.assertNotNull(partialstr);
     Assert.assertEquals("partial string mismatch", "apa", partialstr);
 
     buf = ByteBuffer.wrap((partialstr + "c").getBytes());
+=======
+    String partialstr = new String(buf.array(), StandardCharsets.UTF_8);
+    Assert.assertNotNull(partialstr);
+    Assert.assertEquals("partial string mismatch", "apa", partialstr);
+
+    buf = ByteBuffer.wrap((partialstr + "c").getBytes(StandardCharsets.UTF_8));
+>>>>>>> 1.9.2
     Assert.assertTrue(buf.remaining() > 0);
     context.responseCallMeta().put(key, buf);
   }
@@ -154,24 +224,41 @@ public final class RPCMetaTestPlugin extends RPCPlugin {
     Assert.assertNotNull(context.responseCallMeta());
     Assert.assertNotNull(context.getRequestPayload());
 
+<<<<<<< HEAD
     if (!context.responseCallMeta().containsKey(key)) return;
+=======
+    if (!context.responseCallMeta().containsKey(key))
+      return;
+>>>>>>> 1.9.2
 
     ByteBuffer buf = context.responseCallMeta().get(key);
     Assert.assertNotNull(buf);
     Assert.assertNotNull(buf.array());
 
+<<<<<<< HEAD
     String partialstr = new String(buf.array());
     Assert.assertNotNull(partialstr);
     Assert.assertEquals("partial string mismatch", "apac", partialstr);
 
     buf = ByteBuffer.wrap((partialstr + "he").getBytes());
+=======
+    String partialstr = new String(buf.array(), StandardCharsets.UTF_8);
+    Assert.assertNotNull(partialstr);
+    Assert.assertEquals("partial string mismatch", "apac", partialstr);
+
+    buf = ByteBuffer.wrap((partialstr + "he").getBytes(StandardCharsets.UTF_8));
+>>>>>>> 1.9.2
     Assert.assertTrue(buf.remaining() > 0);
     context.responseCallMeta().put(key, buf);
 
     checkRPCMetaMap(context.responseCallMeta());
   }
 
+<<<<<<< HEAD
   protected void checkRPCMetaMap(Map<String,ByteBuffer> rpcMeta) {
+=======
+  protected void checkRPCMetaMap(Map<String, ByteBuffer> rpcMeta) {
+>>>>>>> 1.9.2
     Assert.assertNotNull(rpcMeta);
     Assert.assertTrue("key not present in map", rpcMeta.containsKey(key));
 
@@ -179,7 +266,11 @@ public final class RPCMetaTestPlugin extends RPCPlugin {
     Assert.assertNotNull(keybuf);
     Assert.assertTrue("key BB had nothing remaining", keybuf.remaining() > 0);
 
+<<<<<<< HEAD
     String str = new String(keybuf.array());
+=======
+    String str = new String(keybuf.array(), StandardCharsets.UTF_8);
+>>>>>>> 1.9.2
     Assert.assertEquals("apache", str);
   }
 

@@ -15,3 +15,10 @@ test-output
 /dist
 bin/
 pom.xml.versionsBackup
+/lang/java/compiler/nbactions.xml
+/lang/java/compiler/nb-configuration.xml
+/lang/java/compiler/nbproject/
+**/.vscode/**/*
+.factorypath
+.vs/
+.DS_Store

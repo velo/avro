@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,8 +46,12 @@ class DeflateCodec extends Codec {
     return ByteBuffer.wrap(baos.toByteArray());
   }
 
+<<<<<<< HEAD
   private void writeAndClose(ByteBuffer data, OutputStream out)
     throws IOException {
+=======
+  private void writeAndClose(ByteBuffer data, OutputStream out) throws IOException {
+>>>>>>> 1.9.2
     out.write(data.array(), data.position(), data.remaining());
     out.close();
   }

@@ -9,11 +9,6 @@
 
 This fork, only applies changes to the maven plugin used to generate sources from avro schema files.
 
-List of features not available on official maven plugin:
-https://github.com/apache/avro/pulls/velo
-
-Decide to keep a fork and release it to maven central, as avro seems to be quite slow to take PRs in.
-
 ## Accessing `SNAPSHOTS`
 
 A build can be downloaded using [Jitpack](jitpack.io).

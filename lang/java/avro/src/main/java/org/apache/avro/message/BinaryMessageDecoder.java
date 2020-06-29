@@ -7,7 +7,11 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
+<<<<<<< HEAD
  *   http://www.apache.org/licenses/LICENSE-2.0
+=======
+ *   https://www.apache.org/licenses/LICENSE-2.0
+>>>>>>> 1.9.2
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -16,6 +20,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+<<<<<<< HEAD
 
 package org.apache.avro.message;
 
@@ -23,11 +28,23 @@ import com.google.common.collect.MapMaker;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaNormalization;
 import org.apache.avro.generic.GenericData;
+=======
+package org.apache.avro.message;
+
+import org.apache.avro.Schema;
+import org.apache.avro.SchemaNormalization;
+import org.apache.avro.generic.GenericData;
+
+>>>>>>> 1.9.2
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Map;
+<<<<<<< HEAD
+=======
+import java.util.concurrent.ConcurrentHashMap;
+>>>>>>> 1.9.2
 
 /**
  * A {@link MessageDecoder} that reads a binary-encoded datum. This checks for
@@ -47,6 +64,7 @@ import java.util.Map;
  */
 public class BinaryMessageDecoder<D> extends MessageDecoder.BaseDecoder<D> {
 
+<<<<<<< HEAD
   private static final ThreadLocal<byte[]> HEADER_BUFFER =
       new ThreadLocal<byte[]>() {
         @Override
@@ -63,11 +81,20 @@ public class BinaryMessageDecoder<D> extends MessageDecoder.BaseDecoder<D> {
           return ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN);
         }
       };
+=======
+  private static final ThreadLocal<byte[]> HEADER_BUFFER = ThreadLocal.withInitial(() -> new byte[10]);
+
+  private static final ThreadLocal<ByteBuffer> FP_BUFFER = ThreadLocal.withInitial(() -> {
+    byte[] header = HEADER_BUFFER.get();
+    return ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN);
+  });
+>>>>>>> 1.9.2
 
   private final GenericData model;
   private final Schema readSchema;
   private final SchemaStore resolver;
 
+<<<<<<< HEAD
   private final Map<Long, RawMessageDecoder<D>> codecByFingerprint =
       new MapMaker().makeMap();
 
@@ -85,6 +112,27 @@ public class BinaryMessageDecoder<D> extends MessageDecoder.BaseDecoder<D> {
    * added using {@link #addSchema(Schema)}.
    *
    * @param model the {@link GenericData data model} for datum instances
+=======
+  private final Map<Long, RawMessageDecoder<D>> codecByFingerprint = new ConcurrentHashMap<>();
+
+  /**
+   * Creates a new {@link BinaryMessageEncoder} that uses the given
+   * {@link GenericData data model} to construct datum instances described by the
+   * {@link Schema schema}.
+   * <p>
+   * The {@code readSchema} is as used the expected schema (read schema). Datum
+   * instances created by this class will be described by the expected schema.
+   * <p>
+   * If {@code readSchema} is {@code null}, the write schema of an incoming buffer
+   * is used as read schema for that datum instance.
+   * <p>
+   * The schema used to decode incoming buffers is determined by the schema
+   * fingerprint encoded in the message header. This class can decode messages
+   * that were encoded using the {@code readSchema} (if any) and other schemas
+   * that are added using {@link #addSchema(Schema)}.
+   *
+   * @param model      the {@link GenericData data model} for datum instances
+>>>>>>> 1.9.2
    * @param readSchema the {@link Schema} used to construct datum instances
    */
   public BinaryMessageDecoder(GenericData model, Schema readSchema) {
@@ -93,6 +141,7 @@ public class BinaryMessageDecoder<D> extends MessageDecoder.BaseDecoder<D> {
 
   /**
    * Creates a new {@link BinaryMessageEncoder} that uses the given
+<<<<<<< HEAD
    * {@link GenericData data model} to construct datum instances described by
    * the {@link Schema schema}.
    * <p>
@@ -115,6 +164,34 @@ public class BinaryMessageDecoder<D> extends MessageDecoder.BaseDecoder<D> {
     this.readSchema = readSchema;
     this.resolver = resolver;
     addSchema(readSchema);
+=======
+   * {@link GenericData data model} to construct datum instances described by the
+   * {@link Schema schema}.
+   * <p>
+   * The {@code readSchema} is used as the expected schema (read schema). Datum
+   * instances created by this class will be described by the expected schema.
+   * <p>
+   * If {@code readSchema} is {@code null}, the write schema of an incoming buffer
+   * is used as read schema for that datum instance.
+   * <p>
+   * The schema used to decode incoming buffers is determined by the schema
+   * fingerprint encoded in the message header. This class can decode messages
+   * that were encoded using the {@code readSchema} (if any), other schemas that
+   * are added using {@link #addSchema(Schema)}, or schemas returned by the
+   * {@code resolver}.
+   *
+   * @param model      the {@link GenericData data model} for datum instances
+   * @param readSchema the {@link Schema} used to construct datum instances
+   * @param resolver   a {@link SchemaStore} used to find schemas by fingerprint
+   */
+  public BinaryMessageDecoder(GenericData model, Schema readSchema, SchemaStore resolver) {
+    this.model = model;
+    this.readSchema = readSchema;
+    this.resolver = resolver;
+    if (readSchema != null) {
+      addSchema(readSchema);
+    }
+>>>>>>> 1.9.2
   }
 
   /**
@@ -124,8 +201,13 @@ public class BinaryMessageDecoder<D> extends MessageDecoder.BaseDecoder<D> {
    */
   public void addSchema(Schema writeSchema) {
     long fp = SchemaNormalization.parsingFingerprint64(writeSchema);
+<<<<<<< HEAD
     codecByFingerprint.put(fp,
         new RawMessageDecoder<D>(model, writeSchema, readSchema));
+=======
+    final Schema actualReadSchema = this.readSchema != null ? this.readSchema : writeSchema;
+    codecByFingerprint.put(fp, new RawMessageDecoder<D>(model, writeSchema, actualReadSchema));
+>>>>>>> 1.9.2
   }
 
   private RawMessageDecoder<D> getDecoder(long fp) {
@@ -142,8 +224,12 @@ public class BinaryMessageDecoder<D> extends MessageDecoder.BaseDecoder<D> {
       }
     }
 
+<<<<<<< HEAD
     throw new MissingSchemaException(
         "Cannot resolve schema for fingerprint: " + fp);
+=======
+    throw new MissingSchemaException("Cannot resolve schema for fingerprint: " + fp);
+>>>>>>> 1.9.2
   }
 
   @Override
@@ -157,11 +243,16 @@ public class BinaryMessageDecoder<D> extends MessageDecoder.BaseDecoder<D> {
       throw new IOException("Failed to read header and fingerprint bytes", e);
     }
 
+<<<<<<< HEAD
     if (BinaryMessageEncoder.V1_HEADER[0] != header[0] ||
         BinaryMessageEncoder.V1_HEADER[1] != header[1]) {
       throw new BadHeaderException(String.format(
           "Unrecognized header bytes: 0x%02X 0x%02X",
           header[0], header[1]));
+=======
+    if (BinaryMessageEncoder.V1_HEADER[0] != header[0] || BinaryMessageEncoder.V1_HEADER[1] != header[1]) {
+      throw new BadHeaderException(String.format("Unrecognized header bytes: 0x%02X 0x%02X", header[0], header[1]));
+>>>>>>> 1.9.2
     }
 
     RawMessageDecoder<D> decoder = getDecoder(FP_BUFFER.get().getLong(2));
@@ -173,6 +264,7 @@ public class BinaryMessageDecoder<D> extends MessageDecoder.BaseDecoder<D> {
    * Reads a buffer from a stream, making multiple read calls if necessary.
    *
    * @param stream an InputStream to read from
+<<<<<<< HEAD
    * @param bytes a buffer
    * @return true if the buffer is complete, false otherwise (stream ended)
    * @throws IOException
@@ -183,6 +275,16 @@ public class BinaryMessageDecoder<D> extends MessageDecoder.BaseDecoder<D> {
     int bytesRead;
     while ((bytes.length - pos) > 0 &&
         (bytesRead = stream.read(bytes, pos, bytes.length - pos)) > 0) {
+=======
+   * @param bytes  a buffer
+   * @return true if the buffer is complete, false otherwise (stream ended)
+   * @throws IOException
+   */
+  private boolean readFully(InputStream stream, byte[] bytes) throws IOException {
+    int pos = 0;
+    int bytesRead;
+    while ((bytes.length - pos) > 0 && (bytesRead = stream.read(bytes, pos, bytes.length - pos)) > 0) {
+>>>>>>> 1.9.2
       pos += bytesRead;
     }
     return (pos == bytes.length);

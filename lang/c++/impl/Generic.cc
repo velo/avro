@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,8 +58,6 @@ void GenericReader::read(GenericDatum& datum, Decoder& d, bool isResolving)
 {
     if (datum.isUnion()) {
         datum.selectBranch(d.decodeUnionIndex());
-        read(datum.value<GenericUnion>().datum(), d, isResolving);
-        return;
     }
     switch (datum.type()) {
     case AVRO_NULL:
@@ -176,8 +174,6 @@ void GenericWriter::write(const GenericDatum& datum, Encoder& e)
 {
     if (datum.isUnion()) {
         e.encodeUnionIndex(datum.unionBranch());
-        write(datum.value<GenericUnion>().datum(), e);
-        return;
     }
     switch (datum.type()) {
     case AVRO_NULL:

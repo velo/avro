@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,14 +29,16 @@ import java.util.zip.InflaterOutputStream;
 /**
  * Implements DEFLATE (RFC1951) compression and decompression.
  *
- * Note that there is a distinction between RFC1951 (deflate)
- * and RFC1950 (zlib).  zlib adds an extra 2-byte header
- * at the front, and a 4-byte checksum at the end.  The
- * code here, by passing "true" as the "nowrap" option to
- * {@link Inflater} and {@link Deflater}, is using
- * RFC1951.
+ * Note that there is a distinction between RFC1951 (deflate) and RFC1950
+ * (zlib). zlib adds an extra 2-byte header at the front, and a 4-byte checksum
+ * at the end. The code here, by passing "true" as the "nowrap" option to
+ * {@link Inflater} and {@link Deflater}, is using RFC1951.
  */
+<<<<<<< HEAD
 class DeflateCodec extends Codec {
+=======
+public class DeflateCodec extends Codec {
+>>>>>>> 1.9.2
 
   static class Option extends CodecFactory {
     private int compressionLevel;
@@ -54,7 +56,11 @@ class DeflateCodec extends Codec {
   private ByteArrayOutputStream outputBuffer;
   private Deflater deflater;
   private Inflater inflater;
+<<<<<<< HEAD
   //currently only do 'nowrap' -- RFC 1951, not zlib
+=======
+  // currently only do 'nowrap' -- RFC 1951, not zlib
+>>>>>>> 1.9.2
   private boolean nowrap = true;
   private int compressionLevel;
 
@@ -70,15 +76,16 @@ class DeflateCodec extends Codec {
   @Override
   public ByteBuffer compress(ByteBuffer data) throws IOException {
     ByteArrayOutputStream baos = getOutputBuffer(data.remaining());
-    DeflaterOutputStream ios = new DeflaterOutputStream(baos, getDeflater());
-    writeAndClose(data, ios);
-    ByteBuffer result = ByteBuffer.wrap(baos.toByteArray());
-    return result;
+    try (OutputStream outputStream = new DeflaterOutputStream(baos, getDeflater())) {
+      outputStream.write(data.array(), computeOffset(data), data.remaining());
+    }
+    return ByteBuffer.wrap(baos.toByteArray());
   }
 
   @Override
   public ByteBuffer decompress(ByteBuffer data) throws IOException {
     ByteArrayOutputStream baos = getOutputBuffer(data.remaining());
+<<<<<<< HEAD
     InflaterOutputStream ios = new InflaterOutputStream(baos, getInflater());
     writeAndClose(data, ios);
     ByteBuffer result = ByteBuffer.wrap(baos.toByteArray());
@@ -93,7 +100,12 @@ class DeflateCodec extends Codec {
       to.write(input, offset, length);
     } finally {
       to.close();
+=======
+    try (OutputStream outputStream = new InflaterOutputStream(baos, getInflater())) {
+      outputStream.write(data.array(), computeOffset(data), data.remaining());
+>>>>>>> 1.9.2
     }
+    return ByteBuffer.wrap(baos.toByteArray());
   }
 
   // get and initialize the inflater for use.
@@ -132,9 +144,9 @@ class DeflateCodec extends Codec {
   public boolean equals(Object obj) {
     if (this == obj)
       return true;
-    if (getClass() != obj.getClass())
+    if (obj == null || obj.getClass() != getClass())
       return false;
-    DeflateCodec other = (DeflateCodec)obj;
+    DeflateCodec other = (DeflateCodec) obj;
     return (this.nowrap == other.nowrap);
   }
 

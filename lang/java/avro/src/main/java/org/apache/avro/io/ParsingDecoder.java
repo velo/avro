@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,10 +24,11 @@ import org.apache.avro.io.parsing.Symbol;
 import org.apache.avro.io.parsing.Parser.ActionHandler;
 import org.apache.avro.io.parsing.SkipParser.SkipHandler;
 
-/** Base class for <a href="parsing/package-summary.html">parser</a>-based
- * {@link Decoder}s. */
-public abstract class ParsingDecoder extends Decoder
-  implements ActionHandler, SkipHandler {
+/**
+ * Base class for <a href="parsing/package-summary.html">parser</a>-based
+ * {@link Decoder}s.
+ */
+public abstract class ParsingDecoder extends Decoder implements ActionHandler, SkipHandler {
   protected final SkipParser parser;
 
   protected ParsingDecoder(Symbol root) throws IOException {
@@ -46,7 +47,8 @@ public abstract class ParsingDecoder extends Decoder
     Symbol top = parser.topSymbol();
     if (top == Symbol.NULL) {
       readNull();
-    } if (top == Symbol.BOOLEAN) {
+    }
+    if (top == Symbol.BOOLEAN) {
       readBoolean();
     } else if (top == Symbol.INT) {
       readInt();
@@ -60,7 +62,7 @@ public abstract class ParsingDecoder extends Decoder
       skipString();
     } else if (top == Symbol.BYTES) {
       skipBytes();
-    } else if (top == Symbol.ENUM)  {
+    } else if (top == Symbol.ENUM) {
       readEnum();
     } else if (top == Symbol.FIXED) {
       skipFixed();
@@ -72,6 +74,10 @@ public abstract class ParsingDecoder extends Decoder
       skipMap();
     }
   }
+<<<<<<< HEAD
 
 }
+=======
+>>>>>>> 1.9.2
 
+}

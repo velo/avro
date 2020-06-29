@@ -5,7 +5,11 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
+<<<<<<< HEAD
  *      http://www.apache.org/licenses/LICENSE-2.0
+=======
+ *      https://www.apache.org/licenses/LICENSE-2.0
+>>>>>>> 1.9.2
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,22 +19,37 @@
  */
 package org.apache.avro.io.parsing;
 
+<<<<<<< HEAD
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import junit.framework.Assert;
+=======
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+>>>>>>> 1.9.2
 import org.apache.avro.Schema;
 import org.junit.Test;
 
 /**
+<<<<<<< HEAD
  * Unit test to verify that recursive schemas are flattened correctly.
  * See AVRO-1667.
+=======
+ * Unit test to verify that recursive schemas are flattened correctly. See
+ * AVRO-1667.
+>>>>>>> 1.9.2
  */
 public class SymbolTest {
 
   private static final String SCHEMA = "{\"type\":\"record\",\"name\":\"SampleNode\","
+<<<<<<< HEAD
       + "\"namespace\":\"org.spf4j.ssdump2.avro\",\n" +
       " \"fields\":[\n" +
       "    {\"name\":\"count\",\"type\":\"int\",\"default\":0},\n" +
@@ -45,14 +64,29 @@ public class SymbolTest {
       "                     {\"name\":\"methodName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}\n" +
       "                  ]}},\n" +
       "              {\"name\":\"node\",\"type\":\"SampleNode\"}]}}}]}";
+=======
+      + "\"namespace\":\"org.spf4j.ssdump2.avro\",\n" + " \"fields\":[\n"
+      + "    {\"name\":\"count\",\"type\":\"int\",\"default\":0},\n" + "    {\"name\":\"subNodes\",\"type\":\n"
+      + "       {\"type\":\"array\",\"items\":{\n" + "           \"type\":\"record\",\"name\":\"SamplePair\",\n"
+      + "           \"fields\":[\n" + "              {\"name\":\"method\",\"type\":\n"
+      + "                  {\"type\":\"record\",\"name\":\"Method\",\n" + "                  \"fields\":[\n"
+      + "                     {\"name\":\"declaringClass\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},\n"
+      + "                     {\"name\":\"methodName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}\n"
+      + "                  ]}},\n" + "              {\"name\":\"node\",\"type\":\"SampleNode\"}]}}}]}";
+>>>>>>> 1.9.2
 
   @Test
   public void testSomeMethod() throws IOException {
     Schema schema = new Schema.Parser().parse(SCHEMA);
+<<<<<<< HEAD
 
     Symbol root = Symbol.root(new ResolvingGrammarGenerator()
         .generate(schema, schema, new HashMap<ValidatingGrammarGenerator.LitS, Symbol>()));
     validateNonNull(root, new HashSet<Symbol>());
+=======
+    Symbol root = new ResolvingGrammarGenerator().generate(schema, schema);
+    validateNonNull(root, new HashSet<>());
+>>>>>>> 1.9.2
   }
 
   private static void validateNonNull(final Symbol symb, Set<Symbol> seen) {
@@ -64,7 +98,11 @@ public class SymbolTest {
     if (symb.production != null) {
       for (Symbol s : symb.production) {
         if (s == null) {
+<<<<<<< HEAD
           Assert.fail("invalid parsing tree should not contain nulls");
+=======
+          fail("invalid parsing tree should not contain nulls");
+>>>>>>> 1.9.2
         }
         if (s.kind != Symbol.Kind.ROOT) {
           validateNonNull(s, seen);

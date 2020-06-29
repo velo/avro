@@ -6,7 +6,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+# https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,6 +32,15 @@ module Avro
       super(msg)
     end
   end
+
+  class << self
+    attr_writer :disable_field_default_validation
+
+    def disable_field_default_validation
+      @disable_field_default_validation ||=
+        ENV.fetch('AVRO_DISABLE_FIELD_DEFAULT_VALIDATION', '') != ''
+    end
+  end
 end
 
 require 'avro/schema'
@@ -40,3 +49,5 @@ require 'avro/data_file'
 require 'avro/protocol'
 require 'avro/ipc'
 require 'avro/schema_normalization'
+require 'avro/schema_validator'
+require 'avro/schema_compatibility'

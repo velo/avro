@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,15 +28,17 @@ import org.apache.avro.specific.SpecificData;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import com.google.protobuf.ByteString;
 
-import org.apache.avro.protobuf.Test.Foo;
-import org.apache.avro.protobuf.Test.A;
-import org.apache.avro.protobuf.Test.M.N;
+import org.apache.avro.protobuf.noopt.Test.Foo;
+import org.apache.avro.protobuf.noopt.Test.A;
+import org.apache.avro.protobuf.noopt.Test.M.N;
 
 public class TestProtobuf {
-  @Test public void testMessage() throws Exception {
+  @Test
+  public void testMessage() throws Exception {
 
     System.out.println(ProtobufData.get().getSchema(Foo.class).toString(true));
     Foo.Builder builder = Foo.newBuilder();
@@ -64,6 +66,9 @@ public class TestProtobuf {
     builder = Foo.newBuilder(fooInArray);
     builder.addFooArray(fooInArray);
 
+    com.google.protobuf.Timestamp ts = com.google.protobuf.Timestamp.newBuilder().setSeconds(1L).setNanos(2).build();
+    builder.setTimestamp(ts);
+
     builder = Foo.newBuilder(fooInner);
     builder.setFoo(fooInner);
     Foo foo = builder.build();
@@ -71,22 +76,58 @@ public class TestProtobuf {
     System.out.println(foo);
 
     ByteArrayOutputStream bao = new ByteArrayOutputStream();
-    ProtobufDatumWriter<Foo> w = new ProtobufDatumWriter<Foo>(Foo.class);
+    ProtobufDatumWriter<Foo> w = new ProtobufDatumWriter<>(Foo.class);
     Encoder e = EncoderFactory.get().binaryEncoder(bao, null);
     w.write(foo, e);
     e.flush();
 
+<<<<<<< HEAD
     Object o = new ProtobufDatumReader<Foo>(Foo.class).read
       (null,
        DecoderFactory.get().createBinaryDecoder
        (new ByteArrayInputStream(bao.toByteArray()), null));
+=======
+    Object o = new ProtobufDatumReader<>(Foo.class).read(null,
+        DecoderFactory.get().binaryDecoder(new ByteArrayInputStream(bao.toByteArray()), null));
+>>>>>>> 1.9.2
 
     assertEquals(foo, o);
   }
 
-  @Test public void testNestedEnum() throws Exception {
+  @Test
+  public void testNestedEnum() throws Exception {
     Schema s = ProtobufData.get().getSchema(N.class);
-    assertEquals(N.class.getName(), SpecificData.getClassName(s));
+    assertEquals(N.class.getName(), SpecificData.get().getClass(s).getName());
   }
 
+  @Test
+  public void testNestedClassNamespace() throws Exception {
+    Schema s = ProtobufData.get().getSchema(Foo.class);
+    assertEquals(org.apache.avro.protobuf.noopt.Test.class.getName(), s.getNamespace());
+  }
+
+  @Test
+  public void testClassNamespaceInMultipleFiles() throws Exception {
+    Schema fooSchema = ProtobufData.get().getSchema(org.apache.avro.protobuf.multiplefiles.Foo.class);
+    assertEquals(org.apache.avro.protobuf.multiplefiles.Foo.class.getPackage().getName(), fooSchema.getNamespace());
+
+    Schema nSchema = ProtobufData.get().getSchema(org.apache.avro.protobuf.multiplefiles.M.N.class);
+    assertEquals(org.apache.avro.protobuf.multiplefiles.M.class.getName(), nSchema.getNamespace());
+  }
+
+  @Test
+  public void testGetNonRepeatedSchemaWithLogicalType() throws Exception {
+    ProtoConversions.TimestampMillisConversion conversion = new ProtoConversions.TimestampMillisConversion();
+
+    // Don't convert to logical type if conversion isn't set
+    ProtobufData instance1 = new ProtobufData();
+    Schema s1 = instance1.getSchema(com.google.protobuf.Timestamp.class);
+    assertNotEquals(conversion.getRecommendedSchema(), s1);
+
+    // Convert to logical type if conversion is set
+    ProtobufData instance2 = new ProtobufData();
+    instance2.addLogicalTypeConversion(conversion);
+    Schema s2 = instance2.getSchema(com.google.protobuf.Timestamp.class);
+    assertEquals(conversion.getRecommendedSchema(), s2);
+  }
 }

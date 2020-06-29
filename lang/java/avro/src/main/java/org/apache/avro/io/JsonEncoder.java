@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ package org.apache.avro.io;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 
 import org.apache.avro.AvroTypeException;
@@ -28,21 +29,26 @@ import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Parser;
 import org.apache.avro.io.parsing.Symbol;
 import org.apache.avro.util.Utf8;
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.util.DefaultPrettyPrinter;
-import org.codehaus.jackson.util.MinimalPrettyPrinter;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
 
+<<<<<<< HEAD
 /** An {@link Encoder} for Avro's JSON data encoding.
+=======
+/**
+ * An {@link Encoder} for Avro's JSON data encoding.
+>>>>>>> 1.9.2
  * </p>
  * Construct using {@link EncoderFactory}.
  * </p>
- * JsonEncoder buffers output, and data may not appear on the output
- * until {@link Encoder#flush()} is called.
+ * JsonEncoder buffers output, and data may not appear on the output until
+ * {@link Encoder#flush()} is called.
  * </p>
  * JsonEncoder is not thread-safe.
- * */
+ */
 public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler {
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
   final Parser parser;
@@ -62,8 +68,7 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
 
   JsonEncoder(Schema sc, JsonGenerator out) throws IOException {
     configure(out);
-    this.parser =
-      new Parser(new JsonGrammarGenerator().generate(sc), this);
+    this.parser = new Parser(new JsonGrammarGenerator().generate(sc), this);
   }
 
   @Override
@@ -76,18 +81,19 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
 
   // by default, one object per line.
   // with pretty option use default pretty printer with root line separator.
-  private static JsonGenerator getJsonGenerator(OutputStream out, boolean pretty)
-      throws IOException {
+  private static JsonGenerator getJsonGenerator(OutputStream out, boolean pretty) throws IOException {
     if (null == out)
       throw new NullPointerException("OutputStream cannot be null");
+<<<<<<< HEAD
     JsonGenerator g
       = new JsonFactory().createJsonGenerator(out, JsonEncoding.UTF8);
+=======
+    JsonGenerator g = new JsonFactory().createGenerator(out, JsonEncoding.UTF8);
+>>>>>>> 1.9.2
     if (pretty) {
       DefaultPrettyPrinter pp = new DefaultPrettyPrinter() {
-        //@Override
-        public void writeRootValueSeparator(JsonGenerator jg)
-            throws IOException
-        {
+        @Override
+        public void writeRootValueSeparator(JsonGenerator jg) throws IOException {
           jg.writeRaw(LINE_SEPARATOR);
         }
       };
@@ -106,11 +112,18 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
    * If the OutputStream provided is null, a NullPointerException is thrown.
    * <p/>
    * Otherwise, this JsonEncoder will flush its current output and then
+<<<<<<< HEAD
    * reconfigure its output to use a default UTF8 JsonGenerator that writes
    * to the provided OutputStream.
    *
    * @param out
    *          The OutputStream to direct output to. Cannot be null.
+=======
+   * reconfigure its output to use a default UTF8 JsonGenerator that writes to the
+   * provided OutputStream.
+   *
+   * @param out The OutputStream to direct output to. Cannot be null.
+>>>>>>> 1.9.2
    * @throws IOException
    * @return this JsonEncoder
    */
@@ -127,14 +140,16 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
    * Otherwise, this JsonEncoder will flush its current output and then
    * reconfigure its output to use the provided JsonGenerator.
    *
+<<<<<<< HEAD
    * @param generator
    *          The JsonGenerator to direct output to. Cannot be null.
+=======
+   * @param generator The JsonGenerator to direct output to. Cannot be null.
+>>>>>>> 1.9.2
    * @throws IOException
    * @return this JsonEncoder
-   * @deprecated internal method
    */
-  @Deprecated
-  public JsonEncoder configure(JsonGenerator generator) throws IOException {
+  private JsonEncoder configure(JsonGenerator generator) throws IOException {
     if (null == generator)
       throw new NullPointerException("JsonGenerator cannot be null");
     if (null != parser) {
@@ -213,10 +228,8 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
     writeByteArray(bytes, start, len);
   }
 
-  private void writeByteArray(byte[] bytes, int start, int len)
-    throws IOException {
-    out.writeString(
-        new String(bytes, start, len, JsonDecoder.CHARSET));
+  private void writeByteArray(byte[] bytes, int start, int len) throws IOException {
+    out.writeString(new String(bytes, start, len, StandardCharsets.ISO_8859_1));
   }
 
   @Override
@@ -225,8 +238,7 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
     Symbol.IntCheckAction top = (Symbol.IntCheckAction) parser.popSymbol();
     if (len != top.size) {
       throw new AvroTypeException(
-        "Incorrect length for fixed binary: expected " +
-        top.size + " but received " + len + " bytes.");
+          "Incorrect length for fixed binary: expected " + top.size + " but received " + len + " bytes.");
     }
     writeByteArray(bytes, start, len);
   }
@@ -236,9 +248,7 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
     parser.advance(Symbol.ENUM);
     Symbol.EnumLabelsAction top = (Symbol.EnumLabelsAction) parser.popSymbol();
     if (e < 0 || e >= top.size) {
-      throw new AvroTypeException(
-          "Enumeration out of range: max is " +
-          top.size + " but received " + e);
+      throw new AvroTypeException("Enumeration out of range: max is " + top.size + " but received " + e);
     }
     out.writeString(top.getLabel(e));
   }
@@ -253,7 +263,7 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
 
   @Override
   public void writeArrayEnd() throws IOException {
-    if (! isEmpty.get(pos)) {
+    if (!isEmpty.get(pos)) {
       parser.advance(Symbol.ITEM_END);
     }
     pop();
@@ -272,7 +282,7 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
 
   @Override
   public void writeMapEnd() throws IOException {
-    if (! isEmpty.get(pos)) {
+    if (!isEmpty.get(pos)) {
       parser.advance(Symbol.ITEM_END);
     }
     pop();
@@ -283,7 +293,7 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
 
   @Override
   public void startItem() throws IOException {
-    if (! isEmpty.get(pos)) {
+    if (!isEmpty.get(pos)) {
       parser.advance(Symbol.ITEM_END);
     }
     super.startItem();
@@ -318,4 +328,3 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
     return null;
   }
 }
-

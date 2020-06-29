@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+##
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -8,20 +9,22 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import absolute_import, division, print_function
+
 import sys
 
-from twisted.internet import reactor, defer
+from avro import protocol, txipc
+from twisted.internet import defer, reactor
 from twisted.python.util import println
-
-from avro import protocol
-from avro import txipc
 
 MAIL_PROTOCOL_JSON = """\
 {"namespace": "example.proto",
@@ -76,7 +79,7 @@ if __name__ == '__main__':
 
   try:
     num_messages = int(sys.argv[4])
-  except:
+  except IndexError:
     num_messages = 1
 
   # build the parameters for the request

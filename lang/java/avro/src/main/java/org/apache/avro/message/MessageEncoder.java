@@ -7,7 +7,11 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
+<<<<<<< HEAD
  *   http://www.apache.org/licenses/LICENSE-2.0
+=======
+ *   https://www.apache.org/licenses/LICENSE-2.0
+>>>>>>> 1.9.2
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -25,6 +29,10 @@ import java.nio.ByteBuffer;
 
 /**
  * Serializes an individual datum as a ByteBuffer or to an OutputStream.
+<<<<<<< HEAD
+=======
+ * 
+>>>>>>> 1.9.2
  * @param <D> a datum class
  */
 public interface MessageEncoder<D> {
@@ -41,7 +49,11 @@ public interface MessageEncoder<D> {
   /**
    * Serialize a single datum to an OutputStream.
    *
+<<<<<<< HEAD
    * @param datum a datum
+=======
+   * @param datum  a datum
+>>>>>>> 1.9.2
    * @param stream an OutputStream to serialize the datum to
    * @throws IOException
    */

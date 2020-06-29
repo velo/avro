@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+##
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -8,7 +9,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,15 +17,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import, division, print_function
+
 import sys
 import time
-from random import sample, choice, randint
+from random import choice, randint, sample
 from string import lowercase
 
 import avro.datafile
-import avro.schema
 import avro.io
-
+import avro.schema
 
 types = ["A", "CNAME"]
 
@@ -73,5 +75,5 @@ def t(f, *args):
 
 if __name__ == "__main__":
     n = int(sys.argv[1])
-    print "Write %0.4f" % t(write, n)
-    print "Read %0.4f" % t(read)
+    print("Write %0.4f" % t(write, n))
+    print("Read %0.4f" % t(read))

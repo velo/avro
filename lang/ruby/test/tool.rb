@@ -6,7 +6,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+# https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,6 @@ class GenericHandler < WEBrick::HTTPServlet::AbstractServlet
     writer = Avro::IPC::FramedWriter.new(StringIO.new)
     writer.write_framed_message(unframed_resp)
     resp.body = writer.to_s
-    @server.stop
   end
 end
 

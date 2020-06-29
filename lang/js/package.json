@@ -1,6 +1,6 @@
 {
   "name": "avro-js",
-  "version": "1.8.2",
+  "version": "1.9.2",
   "author": "Avro Developers <dev@avro.apache.org>",
   "description": "JavaScript Avro implementation",
   "contributors": [
@@ -14,8 +14,8 @@
     }
   ],
   "repository": {
-    "type": "svn",
-    "url": "http://svn.apache.org/repos/asf/avro/trunk/lang/js/"
+    "type": "git",
+    "url": "https://github.com/apache/avro"
   },
   "keywords": [
     "avro",
@@ -42,9 +42,10 @@
     "underscore": "*"
   },
   "devDependencies": {
-    "coveralls": "^2.11.4",
+    "coveralls": "^3.0.7",
     "istanbul": "^0.3.19",
-    "mocha": "^2.3.2",
+    "jshint": "^2.10.2",
+    "mocha": "^6.2.2",
     "tmp": "^0.0.28"
   },
   "noAnalyze": true,

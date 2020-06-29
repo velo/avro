@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,12 +20,9 @@ package org.apache.avro.io;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -35,6 +32,7 @@ import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Parser;
 import org.apache.avro.io.parsing.Symbol;
 import org.apache.avro.util.Utf8;
+<<<<<<< HEAD
 import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonLocation;
@@ -44,15 +42,24 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.ObjectCodec;
 
 /** A {@link Decoder} for Avro's JSON data encoding.
+=======
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
+
+/**
+ * A {@link Decoder} for Avro's JSON data encoding.
+>>>>>>> 1.9.2
  * </p>
  * Construct using {@link DecoderFactory}.
  * </p>
  * JsonDecoder is not thread-safe.
- * */
-public class JsonDecoder extends ParsingDecoder
-  implements Parser.ActionHandler {
+ */
+public class JsonDecoder extends ParsingDecoder implements Parser.ActionHandler {
   private JsonParser in;
   private static JsonFactory jsonFactory = new JsonFactory();
+<<<<<<< HEAD
   Stack<ReorderBuffer> reorderBuffers = new Stack<ReorderBuffer>();
   ReorderBuffer currentReorderBuffer;
 
@@ -62,6 +69,15 @@ public class JsonDecoder extends ParsingDecoder
   }
 
   static final String CHARSET = "ISO-8859-1";
+=======
+  Stack<ReorderBuffer> reorderBuffers = new Stack<>();
+  ReorderBuffer currentReorderBuffer;
+
+  private static class ReorderBuffer {
+    public Map<String, TokenBuffer> savedFields = new HashMap<>();
+    public JsonParser origParser = null;
+  }
+>>>>>>> 1.9.2
 
   private JsonDecoder(Symbol root, InputStream in) throws IOException {
     super(root);
@@ -93,10 +109,10 @@ public class JsonDecoder extends ParsingDecoder
    * <p/>
    * If the InputStream provided is null, a NullPointerException is thrown.
    * <p/>
-   * Otherwise, this JsonDecoder will reset its state and then
-   * reconfigure its input.
-   * @param in
-   *   The IntputStream to read from. Cannot be null.
+   * Otherwise, this JsonDecoder will reset its state and then reconfigure its
+   * input.
+   * 
+   * @param in The InputStream to read from. Cannot be null.
    * @throws IOException
    * @return this JsonDecoder
    */
@@ -105,7 +121,9 @@ public class JsonDecoder extends ParsingDecoder
       throw new NullPointerException("InputStream to read from cannot be null!");
     }
     parser.reset();
-    this.in = jsonFactory.createJsonParser(in);
+    reorderBuffers.clear();
+    currentReorderBuffer = null;
+    this.in = jsonFactory.createParser(in);
     this.in.nextToken();
     return this;
   }
@@ -115,10 +133,10 @@ public class JsonDecoder extends ParsingDecoder
    * <p/>
    * If the String provided is null, a NullPointerException is thrown.
    * <p/>
-   * Otherwise, this JsonDecoder will reset its state and then
-   * reconfigure its input.
-   * @param in
-   *   The String to read from. Cannot be null.
+   * Otherwise, this JsonDecoder will reset its state and then reconfigure its
+   * input.
+   * 
+   * @param in The String to read from. Cannot be null.
    * @throws IOException
    * @return this JsonDecoder
    */
@@ -127,7 +145,9 @@ public class JsonDecoder extends ParsingDecoder
       throw new NullPointerException("String to read from cannot be null!");
     }
     parser.reset();
-    this.in = new JsonFactory().createJsonParser(in);
+    reorderBuffers.clear();
+    currentReorderBuffer = null;
+    this.in = new JsonFactory().createParser(in);
     this.in.nextToken();
     return this;
   }
@@ -261,7 +281,7 @@ public class JsonDecoder extends ParsingDecoder
   }
 
   private byte[] readByteArray() throws IOException {
-    byte[] result = in.getText().getBytes(CHARSET);
+    byte[] result = in.getText().getBytes(StandardCharsets.ISO_8859_1);
     return result;
   }
 
@@ -280,8 +300,7 @@ public class JsonDecoder extends ParsingDecoder
     Symbol.IntCheckAction top = (Symbol.IntCheckAction) parser.popSymbol();
     if (size != top.size) {
       throw new AvroTypeException(
-        "Incorrect length for fixed binary: expected " +
-        top.size + " but received " + size + " bytes.");
+          "Incorrect length for fixed binary: expected " + top.size + " but received " + size + " bytes.");
     }
   }
 
@@ -292,8 +311,7 @@ public class JsonDecoder extends ParsingDecoder
       byte[] result = readByteArray();
       in.nextToken();
       if (result.length != len) {
-        throw new AvroTypeException("Expected fixed length " + len
-            + ", but got" + result.length);
+        throw new AvroTypeException("Expected fixed length " + len + ", but got" + result.length);
       }
       System.arraycopy(result, 0, bytes, start, len);
     } else {
@@ -312,8 +330,7 @@ public class JsonDecoder extends ParsingDecoder
       byte[] result = readByteArray();
       in.nextToken();
       if (result.length != length) {
-        throw new AvroTypeException("Expected fixed length " + length
-            + ", but got" + result.length);
+        throw new AvroTypeException("Expected fixed length " + length + ", but got" + result.length);
       }
     } else {
       throw error("fixed");
@@ -432,8 +449,7 @@ public class JsonDecoder extends ParsingDecoder
     String label;
     if (in.getCurrentToken() == JsonToken.VALUE_NULL) {
       label = "null";
-    } else if (in.getCurrentToken() == JsonToken.START_OBJECT &&
-               in.nextToken() == JsonToken.FIELD_NAME) {
+    } else if (in.getCurrentToken() == JsonToken.START_OBJECT && in.nextToken() == JsonToken.FIELD_NAME) {
       label = in.getText();
       in.nextToken();
       parser.pushSymbol(Symbol.UNION_END);
@@ -450,28 +466,35 @@ public class JsonDecoder extends ParsingDecoder
   @Override
   public Symbol doAction(Symbol input, Symbol top) throws IOException {
     if (top instanceof Symbol.FieldAdjustAction) {
-        Symbol.FieldAdjustAction fa = (Symbol.FieldAdjustAction) top;
-        String name = fa.fname;
+      Symbol.FieldAdjustAction fa = (Symbol.FieldAdjustAction) top;
+      String name = fa.fname;
       if (currentReorderBuffer != null) {
-        List<JsonElement> node = currentReorderBuffer.savedFields.get(name);
-        if (node != null) {
-          currentReorderBuffer.savedFields.remove(name);
-          currentReorderBuffer.origParser = in;
-          in = makeParser(node);
-          return null;
+        try (TokenBuffer tokenBuffer = currentReorderBuffer.savedFields.get(name)) {
+          if (tokenBuffer != null) {
+            currentReorderBuffer.savedFields.remove(name);
+            currentReorderBuffer.origParser = in;
+            in = tokenBuffer.asParser();
+            in.nextToken();
+            return null;
+          }
         }
       }
       if (in.getCurrentToken() == JsonToken.FIELD_NAME) {
         do {
           String fn = in.getText();
           in.nextToken();
-          if (name.equals(fn)) {
+          if (name.equals(fn) || fa.aliases.contains(fn)) {
             return null;
           } else {
             if (currentReorderBuffer == null) {
               currentReorderBuffer = new ReorderBuffer();
             }
-            currentReorderBuffer.savedFields.put(fn, getVaueAsTree(in));
+            try (TokenBuffer tokenBuffer = new TokenBuffer(in)) {
+              // Moves the parser to the end of the current event e.g. END_OBJECT
+              tokenBuffer.copyCurrentStructure(in);
+              currentReorderBuffer.savedFields.put(fn, tokenBuffer);
+            }
+            in.nextToken();
           }
         } while (in.getCurrentToken() == JsonToken.FIELD_NAME);
         throw new AvroTypeException("Expected field name not found: " + fa.fname);
@@ -490,23 +513,28 @@ public class JsonDecoder extends ParsingDecoder
         throw error("record-start");
       }
     } else if (top == Symbol.RECORD_END || top == Symbol.UNION_END) {
-      if (in.getCurrentToken() == JsonToken.END_OBJECT) {
+      // AVRO-2034 advance to the end of our object
+      while (in.getCurrentToken() != JsonToken.END_OBJECT) {
         in.nextToken();
-        if (top == Symbol.RECORD_END) {
-          if (currentReorderBuffer != null && !currentReorderBuffer.savedFields.isEmpty()) {
-            throw error("Unknown fields: " + currentReorderBuffer.savedFields.keySet());
-          }
-          currentReorderBuffer = reorderBuffers.pop();
-        }
-      } else {
-        throw error(top == Symbol.RECORD_END ? "record-end" : "union-end");
       }
+
+      if (top == Symbol.RECORD_END) {
+        if (currentReorderBuffer != null && !currentReorderBuffer.savedFields.isEmpty()) {
+          throw error("Unknown fields: " + currentReorderBuffer.savedFields.keySet());
+        }
+        currentReorderBuffer = reorderBuffers.pop();
+      }
+
+      // AVRO-2034 advance beyond the end object for the next record.
+      in.nextToken();
+
     } else {
       throw new AvroTypeException("Unknown action symbol " + top);
     }
     return null;
   }
 
+<<<<<<< HEAD
   private static class JsonElement {
     public final JsonToken token;
     public final String value;
@@ -694,10 +722,10 @@ public class JsonDecoder extends ParsingDecoder
     };
   }
 
+=======
+>>>>>>> 1.9.2
   private AvroTypeException error(String type) {
-    return new AvroTypeException("Expected " + type +
-        ". Got " + in.getCurrentToken());
+    return new AvroTypeException("Expected " + type + ". Got " + in.getCurrentToken());
   }
 
 }
-

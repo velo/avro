@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,9 +16,6 @@
  * limitations under the License.
  */
 package org.apache.avro.data;
-
-import java.io.IOException;
-import java.util.Arrays;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Conversion;
@@ -30,46 +27,74 @@ import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.IndexedRecord;
 
+<<<<<<< HEAD
 /** Abstract base class for RecordBuilder implementations.  Not thread-safe. */
 public abstract class RecordBuilderBase<T extends IndexedRecord>
   implements RecordBuilder<T> {
+=======
+import java.io.IOException;
+import java.util.Arrays;
+
+/** Abstract base class for RecordBuilder implementations. Not thread-safe. */
+public abstract class RecordBuilderBase<T extends IndexedRecord> implements RecordBuilder<T> {
+>>>>>>> 1.9.2
   private static final Field[] EMPTY_FIELDS = new Field[0];
   private final Schema schema;
   private final Field[] fields;
   private final boolean[] fieldSetFlags;
   private final GenericData data;
 
+<<<<<<< HEAD
   protected final Schema schema() { return schema; }
   protected final Field[] fields() { return fields; }
   protected final boolean[] fieldSetFlags() { return fieldSetFlags; }
   protected final GenericData data() { return data; }
+=======
+  protected final Schema schema() {
+    return schema;
+  }
+
+  protected final Field[] fields() {
+    return fields;
+  }
+
+  protected final boolean[] fieldSetFlags() {
+    return fieldSetFlags;
+  }
+
+  protected final GenericData data() {
+    return data;
+  }
+>>>>>>> 1.9.2
 
   /**
    * Creates a RecordBuilderBase for building records of the given type.
+   * 
    * @param schema the schema associated with the record class.
    */
   protected RecordBuilderBase(Schema schema, GenericData data) {
     this.schema = schema;
     this.data = data;
-    fields = (Field[]) schema.getFields().toArray(EMPTY_FIELDS);
+    fields = schema.getFields().toArray(EMPTY_FIELDS);
     fieldSetFlags = new boolean[fields.length];
   }
 
   /**
-   * RecordBuilderBase copy constructor.
-   * Makes a deep copy of the values in the other builder.
+   * RecordBuilderBase copy constructor. Makes a deep copy of the values in the
+   * other builder.
+   * 
    * @param other RecordBuilderBase instance to copy.
    */
   protected RecordBuilderBase(RecordBuilderBase<T> other, GenericData data) {
     this.schema = other.schema;
     this.data = data;
-    fields = (Field[]) schema.getFields().toArray(EMPTY_FIELDS);
+    fields = schema.getFields().toArray(EMPTY_FIELDS);
     fieldSetFlags = new boolean[other.fieldSetFlags.length];
-    System.arraycopy(
-        other.fieldSetFlags, 0, fieldSetFlags, 0, fieldSetFlags.length);
+    System.arraycopy(other.fieldSetFlags, 0, fieldSetFlags, 0, fieldSetFlags.length);
   }
 
   /**
+<<<<<<< HEAD
    * Validates that a particular value for a given field is valid according to
    * the following algorithm:
    * 1. If the value is not null, or the field type is null, or the field type
@@ -80,23 +105,34 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
    * @param value the value to validate.
    * @throws NullPointerException if value is null and the given field does
    * not accept null values.
+=======
+   * Validates that a particular value for a given field is valid according to the
+   * following algorithm: 1. If the value is not null, or the field type is null,
+   * or the field type is a union which accepts nulls, returns. 2. Else, if the
+   * field has a default value, returns. 3. Otherwise throws AvroRuntimeException.
+   * 
+   * @param field the field to validate.
+   * @param value the value to validate.
+   * @throws NullPointerException if value is null and the given field does not
+   *                              accept null values.
+>>>>>>> 1.9.2
    */
   protected void validate(Field field, Object value) {
     if (isValidValue(field, value)) {
-      return;
-    }
-    else if (field.defaultValue() != null) {
-      return;
-    }
-    else {
-      throw new AvroRuntimeException(
-          "Field " + field + " does not accept null values");
+    } else if (field.defaultVal() != null) {
+    } else {
+      throw new AvroRuntimeException("Field " + field + " does not accept null values");
     }
   }
 
   /**
    * Tests whether a value is valid for a specified field.
+<<<<<<< HEAD
    * @param f the field for which to test the value.
+=======
+   * 
+   * @param f     the field for which to test the value.
+>>>>>>> 1.9.2
    * @param value the value to test.
    * @return true if the value is valid for the given field; false otherwise.
    */
@@ -128,9 +164,15 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
 
   /**
    * Gets the default value of the given field, if any.
+   * 
    * @param field the field whose default value should be retrieved.
+<<<<<<< HEAD
    * @return the default value associated with the given field,
    * or null if none is specified in the schema.
+=======
+   * @return the default value associated with the given field, or null if none is
+   *         specified in the schema.
+>>>>>>> 1.9.2
    * @throws IOException
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -183,10 +225,9 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
     if (!Arrays.equals(fieldSetFlags, other.fieldSetFlags))
       return false;
     if (schema == null) {
-      if (other.schema != null)
-        return false;
-    } else if (!schema.equals(other.schema))
-      return false;
-    return true;
+      return other.schema == null;
+    } else {
+      return schema.equals(other.schema);
+    }
   }
 }

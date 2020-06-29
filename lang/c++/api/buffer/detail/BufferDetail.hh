@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -346,7 +346,7 @@ class BufferImpl : boost::noncopyable
 
     /// Write a single value to buffer, add a new chunk if necessary.
     template<typename T>
-    void writeTo(T val, const boost::true_type&)
+    void writeTo(T val, const std::true_type&)
     {
         if(freeSpace_ && (sizeof(T) <= writeChunks_.front().freeSize())) {
             // fast path, there's enough room in the writeable chunk to just
@@ -364,7 +364,7 @@ class BufferImpl : boost::noncopyable
     /// An uninstantiable function, this is if boost::is_fundamental check fails,
     /// and will compile-time assert.
     template<typename T>
-    void writeTo(T val, const boost::false_type&) 
+    void writeTo(T val, const std::false_type&) 
     {
         BOOST_STATIC_ASSERT(sizeof(T)==0);
     }

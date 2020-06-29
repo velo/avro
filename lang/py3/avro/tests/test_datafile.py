@@ -10,7 +10,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,10 +23,18 @@ import os
 import tempfile
 import unittest
 
-from avro import datafile
-from avro import io
-from avro import schema
+from avro import datafile, io, schema
 
+try:
+  import snappy
+  HAS_SNAPPY = True
+except ImportError:
+  HAS_SNAPPY = False
+try:
+  import zstandard
+  HAS_ZSTANDARD = True
+except ImportError:
+  HAS_ZSTANDARD = False
 
 # ------------------------------------------------------------------------------
 
@@ -136,7 +144,7 @@ class TestDataFile(unittest.TestCase):
         logging.debug('Creating data file %r', file_path)
         with open(file_path, 'wb') as writer:
           datum_writer = io.DatumWriter()
-          schema_object = schema.Parse(writer_schema)
+          schema_object = schema.parse(writer_schema)
           with datafile.DataFileWriter(
               writer=writer,
               datum_writer=datum_writer,
@@ -185,7 +193,7 @@ class TestDataFile(unittest.TestCase):
         logging.debug('Creating data file %r', file_path)
         with open(file_path, 'wb') as writer:
           datum_writer = io.DatumWriter()
-          schema_object = schema.Parse(writer_schema)
+          schema_object = schema.parse(writer_schema)
           with datafile.DataFileWriter(
               writer=writer,
               datum_writer=datum_writer,
@@ -231,7 +239,7 @@ class TestDataFile(unittest.TestCase):
     with open(file_path, 'wb') as writer:
       datum_writer = io.DatumWriter()
       sample_schema, sample_datum = SCHEMAS_TO_VALIDATE[1]
-      schema_object = schema.Parse(sample_schema)
+      schema_object = schema.parse(sample_schema)
       with datafile.DataFileWriter(writer, datum_writer, schema_object) as dfw:
         dfw.append(sample_datum)
       self.assertTrue(writer.closed)
@@ -252,7 +260,7 @@ class TestDataFile(unittest.TestCase):
     with open(file_path, 'wb') as writer:
       datum_writer = io.DatumWriter()
       sample_schema, sample_datum = SCHEMAS_TO_VALIDATE[1]
-      schema_object = schema.Parse(sample_schema)
+      schema_object = schema.parse(sample_schema)
       with datafile.DataFileWriter(writer, datum_writer, schema_object) as dfw:
         dfw.SetMeta('test.string', 'foo')
         dfw.SetMeta('test.number', '1')

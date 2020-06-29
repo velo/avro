@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,6 +25,7 @@ using Avro.Specific;
 using System.Reflection;
 using Avro.File;
 using System.Linq;
+using System.IO.Compression;
 
 namespace Avro.Test.File
 {
@@ -40,15 +41,15 @@ namespace Avro.Test.File
         /// <param name="schemaStr"></param>
         /// <param name="recs"></param>
         /// <param name="codecType"></param>
-        [TestCase(specificSchema, new object[] { new object[] { "John", 23 } }, Codec.Type.Deflate)]
-        [TestCase(specificSchema, new object[] { new object[] { "Jane", 23 } }, Codec.Type.Deflate)]
-        [TestCase(specificSchema, new object[] { new object[] { "John", 23 }, new object[] { "Jane", 99 }, new object[] { "Jeff", 88 } }, Codec.Type.Deflate)]
+        [TestCase(specificSchema, new object[] { new object[] { "John", 23 } }, Codec.Type.Deflate, TestName = "TestSpecificData0")]
+        [TestCase(specificSchema, new object[] { new object[] { "Jane", 23 } }, Codec.Type.Deflate, TestName = "TestSpecificData1")]
+        [TestCase(specificSchema, new object[] { new object[] { "John", 23 }, new object[] { "Jane", 99 }, new object[] { "Jeff", 88 } }, Codec.Type.Deflate, TestName = "TestSpecificData2")]
         [TestCase(specificSchema, new object[] { new object[] {"John", 23}, new object[] { "Jane", 99 }, new object[] { "Jeff", 88 },
                                                  new object[] {"James", 13}, new object[] { "June", 109 }, new object[] { "Lloyd", 18 },
-                                                 new object[] {"Jenny", 3}, new object[] { "Bob", 9 }, new object[] { null, 48 }}, Codec.Type.Deflate)]
-        [TestCase(specificSchema, new object[] { new object[] { "John", 23 } }, Codec.Type.Null)]
-        [TestCase(specificSchema, new object[] { new object[] { "Jane", 23 } }, Codec.Type.Null)]
-        [TestCase(specificSchema, new object[] { new object[] { "John", 23 }, new object[] { "Jane", 99 }, new object[] { "Jeff", 88 } }, Codec.Type.Null)]
+                                                 new object[] {"Jenny", 3}, new object[] { "Bob", 9 }, new object[] { null, 48 }}, Codec.Type.Deflate, TestName = "TestSpecificData3")]
+        [TestCase(specificSchema, new object[] { new object[] { "John", 23 } }, Codec.Type.Null, TestName = "TestSpecificData4")]
+        [TestCase(specificSchema, new object[] { new object[] { "Jane", 23 } }, Codec.Type.Null, TestName = "TestSpecificData5")]
+        [TestCase(specificSchema, new object[] { new object[] { "John", 23 }, new object[] { "Jane", 99 }, new object[] { "Jeff", 88 } }, Codec.Type.Null, TestName = "TestSpecificData6")]
         [TestCase(specificSchema, new object[] { new object[] {"John", 23}, new object[] { "Jane", 99 }, new object[] { "Jeff", 88 },
                                                  new object[] {"James", 13}, new object[] { "June", 109 }, new object[] { "Lloyd", 18 },
                                                  new object[] {"Jamie", 53}, new object[] { "Fanessa", 101 }, new object[] { "Kan", 18 },
@@ -59,7 +60,7 @@ namespace Avro.Test.File
                                                  new object[] {"Ernie", 43}, new object[] { "Joel", 99 }, new object[] { "Dan", 78 },
                                                  new object[] {"Dave", 103}, new object[] { "Hillary", 79 }, new object[] { "Grant", 88 },
                                                  new object[] {"JJ", 14}, new object[] { "Bill", 90 }, new object[] { "Larry", 4 },
-                                                 new object[] {"Jenny", 3}, new object[] { "Bob", 9 }, new object[] { null, 48 }}, Codec.Type.Null)]
+                                                 new object[] {"Jenny", 3}, new object[] { "Bob", 9 }, new object[] { null, 48 }}, Codec.Type.Null, TestName = "TestSpecificData7")]
         public void TestSpecificData(string schemaStr, object[] recs, Codec.Type codecType)
         {
             // create and write out
@@ -199,6 +200,53 @@ namespace Avro.Test.File
         }
 
         /// <summary>
+        /// This test is a single test case of
+        /// <see cref="TestGenericData(string, object[], Codec.Type)"/> but introduces a
+        /// DeflateStream as it is a standard non-seekable Stream that has the same behavior as the
+        /// NetworkStream, which we should handle.
+        /// </summary>
+        [TestCase("{\"type\":\"record\", \"name\":\"n\", \"fields\":" +
+            "[{\"name\":\"f1\", \"type\":[\"int\", \"long\"]}]}",
+            new object[] { "f1", 100L }, Codec.Type.Null)]
+        public void TestNonSeekableStream(string schemaStr, object[] value, Codec.Type codecType)
+        {
+            foreach (var rwFactory in GenericOptions<GenericRecord>())
+            {
+                // Create and write out
+                MemoryStream compressedStream = new MemoryStream();
+                // using here a DeflateStream as it is a standard non-seekable stream, so if it works for this one,
+                // it should also works with any standard non-seekable stream (ie: NetworkStreams)
+                DeflateStream dataFileOutputStream = new DeflateStream(compressedStream, CompressionMode.Compress);
+                using (var writer = rwFactory.CreateWriter(dataFileOutputStream, Schema.Parse(schemaStr), Codec.CreateCodec(codecType)))
+                {
+                    writer.Append(mkRecord(value, Schema.Parse(schemaStr) as RecordSchema));
+
+                    // The Sync method is not supported for non-seekable streams.
+                    Assert.Throws<NotSupportedException>(() => writer.Sync());
+                }
+
+                DeflateStream dataFileInputStream = new DeflateStream(new MemoryStream(compressedStream.ToArray()), CompressionMode.Decompress);
+
+                // Read back
+                IList<GenericRecord> readFoos = new List<GenericRecord>();
+                using (IFileReader<GenericRecord> reader = rwFactory.CreateReader(dataFileInputStream, null))
+                {
+                    foreach (GenericRecord foo in reader.NextEntries)
+                    {
+                        readFoos.Add(foo);
+                    }
+
+                    // These methods are not supported for non-seekable streams.
+                    Assert.Throws<AvroRuntimeException>(() => reader.Seek(0));
+                    Assert.Throws<AvroRuntimeException>(() => reader.PreviousSync());
+                }
+
+                Assert.IsTrue((readFoos != null && readFoos.Count > 0),
+                               string.Format(@"Generic object: {0} did not serialise/deserialise correctly", readFoos));
+            }
+        }
+
+        /// <summary>
         /// Reading & writing of primitive objects
         /// </summary>
         /// <param name="schemaStr"></param>
@@ -319,7 +367,7 @@ namespace Avro.Test.File
         }
 
         /// <summary>
-        /// Partial reading of file / stream from 
+        /// Partial reading of file / stream from
         /// position in stream
         /// </summary>
         /// <param name="schemaStr"></param>
@@ -366,7 +414,7 @@ namespace Avro.Test.File
                 // move to next block from position
                 reader.Sync(position);
 
-                // read records from synced position 
+                // read records from synced position
                 foreach (Foo rec in reader.NextEntries)
                     readRecords.Add(rec);
             }
@@ -455,7 +503,7 @@ namespace Avro.Test.File
             reader.Sync( position );
 
             int readRecords = 0;
-            // read records from synced position 
+            // read records from synced position
             foreach( Foo rec in reader.NextEntries )
             {
                 readRecords++;
@@ -464,7 +512,7 @@ namespace Avro.Test.File
         }
 
         /// <summary>
-        /// Reading all sync positions and 
+        /// Reading all sync positions and
         /// verifying them with subsequent seek
         /// positions
         /// </summary>
@@ -499,7 +547,7 @@ namespace Avro.Test.File
 
             MemoryStream dataFileInputStream = new MemoryStream(dataFileOutputStream.ToArray());
 
-            // read syncs 
+            // read syncs
             IList<long> syncs = new List<long>();
             using (IFileReader<Foo> reader = DataFileReader<Foo>.OpenReader(dataFileInputStream))
             {
@@ -507,7 +555,7 @@ namespace Avro.Test.File
 
                 foreach (Foo foo in reader.NextEntries)
                 {
-                    if (reader.PreviousSync() != previousSync 
+                    if (reader.PreviousSync() != previousSync
                      && reader.Tell() != reader.PreviousSync()) // EOF
                     {
                         previousSync = reader.PreviousSync();
@@ -520,7 +568,7 @@ namespace Avro.Test.File
                 Assert.AreEqual(reader.PreviousSync(), syncs[0],
                               string.Format("Error syncing reader to position: {0}", syncs[0]));
 
-                foreach (long sync in syncs) // the rest 
+                foreach (long sync in syncs) // the rest
                 {
                     reader.Seek(sync);
                     Foo foo = reader.Next();
@@ -567,7 +615,7 @@ namespace Avro.Test.File
             {
                 readFoos.Add(foo);
             }
-            return (readFoos.Count > 0 && 
+            return (readFoos.Count > 0 &&
                 CheckPrimitiveEquals(value, readFoos[0]));
         }
 
@@ -630,9 +678,9 @@ namespace Avro.Test.File
             return records;
         }
 
-        private bool ValidateMetaData<T>(IFileReader<T> reader, 
-                                         string key, 
-                                         object expected, 
+        private bool ValidateMetaData<T>(IFileReader<T> reader,
+                                         string key,
+                                         object expected,
                                          bool useTypeGetter)
         {
             byte[] valueBytes = reader.GetMeta(key);
@@ -643,7 +691,7 @@ namespace Avro.Test.File
                 expectedBytes = (byte[])expected;
                 return Enumerable.SequenceEqual(expectedBytes, valueBytes);
             }
-            else if (expected is long)  
+            else if (expected is long)
             {
                 if (useTypeGetter)
                     return ((long)expected == reader.GetMetaLong(key));
@@ -689,7 +737,7 @@ namespace Avro.Test.File
             yield return new ReaderWriterPair<T>
                              {
                                  CreateReader = (stream, schema) => DataFileReader<T>.OpenReader(stream, schema),
-                                 CreateWriter = (stream, schema, codec) => 
+                                 CreateWriter = (stream, schema, codec) =>
                                      DataFileWriter<T>.OpenWriter(new SpecificWriter<T>(schema), stream, codec )
                              };
 
@@ -697,7 +745,7 @@ namespace Avro.Test.File
                              {
                                  CreateReader = (stream, schema) => DataFileReader<T>.OpenReader(stream, schema,
                                      (ws, rs) => new SpecificDatumReader<T>(ws, rs)),
-                                 CreateWriter = (stream, schema, codec) => 
+                                 CreateWriter = (stream, schema, codec) =>
                                      DataFileWriter<T>.OpenWriter(new SpecificDatumWriter<T>(schema), stream, codec )
                              };
         }
@@ -707,7 +755,7 @@ namespace Avro.Test.File
             yield return new ReaderWriterPair<T>
                              {
                                  CreateReader = (stream, schema) => DataFileReader<T>.OpenReader(stream, schema),
-                                 CreateWriter = (stream, schema, codec) => 
+                                 CreateWriter = (stream, schema, codec) =>
                                      DataFileWriter<T>.OpenWriter(new GenericWriter<T>(schema), stream, codec )
                              };
 
@@ -715,7 +763,7 @@ namespace Avro.Test.File
                              {
                                  CreateReader = (stream, schema) => DataFileReader<T>.OpenReader(stream, schema,
                                      (ws, rs) => new GenericDatumReader<T>(ws, rs)),
-                                 CreateWriter = (stream, schema, codec) => 
+                                 CreateWriter = (stream, schema, codec) =>
                                      DataFileWriter<T>.OpenWriter(new GenericDatumWriter<T>(schema), stream, codec )
                              };
         }
@@ -741,7 +789,7 @@ namespace Avro.Test.File
         {
             get
             {
-                return Schema.Parse("{\"type\":\"record\",\"name\":\"Foo\",\"namespace\":\"Avro.Test.File\"," + 
+                return Schema.Parse("{\"type\":\"record\",\"name\":\"Foo\",\"namespace\":\"Avro.Test.File\"," +
                                     "\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"age\",\"type\":\"int\"}]}");
             }
         }

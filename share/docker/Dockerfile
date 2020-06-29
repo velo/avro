@@ -6,7 +6,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,45 +17,130 @@
 # Dockerfile for installing the necessary dependencies for building Avro.
 # See BUILD.txt.
 
-FROM java:7-jdk
-
+FROM openjdk:8
 WORKDIR /root
+CMD ["/avro/share/docker/run-tests.sh"]
+ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=isolemnlysweariamuptonogood \
+    DEBIAN_FRONTEND=noninteractive
 
-# Add the repository for node.js 4.x
-RUN curl -sL https://deb.nodesource.com/setup_4.x | bash -
+# Install dependencies from vanilla system packages
+RUN apt-get -qqy update \
+ && apt-get -qqy install --no-install-recommends ant \
+                                                 apt-transport-https \
+                                                 asciidoc \
+                                                 bison \
+                                                 bzip2 \
+                                                 cmake \
+                                                 curl \
+                                                 doxygen \
+                                                 flex \
+                                                 g++ \
+                                                 gcc \
+                                                 git \
+                                                 libboost-all-dev \
+                                                 libfontconfig1-dev \
+                                                 libfreetype6-dev \
+                                                 libglib2.0-dev \
+                                                 libjansson-dev \
+                                                 libsnappy-dev \
+                                                 libsnappy1v5 \
+                                                 make \
+                                                 maven \
+                                                 perl \
+                                                 pycodestyle \
+                                                 python \
+                                                 python-pip \
+                                                 python-setuptools \
+                                                 python-snappy \
+                                                 python-wheel \
+                                                 python3-pip \
+                                                 python3-setuptools \
+                                                 python3-snappy \
+                                                 python3-wheel \
+                                                 rake \
+                                                 ruby \
+                                                 ruby-dev \
+                                                 source-highlight \
+                                                 subversion \
+                                                 valgrind \
+ && apt-get -qqy clean \
+ && rm -rf /var/lib/apt/lists
 
-# Install dependencies from packages
-RUN apt-get update && apt-get install --no-install-recommends -y \
-  git subversion curl ant make maven \
-  gcc cmake libjansson-dev asciidoc source-highlight \
-  g++ flex bison libboost-all-dev doxygen \
-  mono-devel mono-gmcs nunit \
-  nodejs \
-  perl \
-  php5 phpunit php5-gmp bzip2 \
-  python python-setuptools python3-setuptools \
-  ruby ruby-dev rake \
-  libsnappy1 libsnappy-dev
-
-# Install Forrest
-RUN mkdir -p /usr/local/apache-forrest
-RUN curl -O http://archive.apache.org/dist/forrest/0.8/apache-forrest-0.8.tar.gz
-RUN tar xzf *forrest* --strip-components 1 -C /usr/local/apache-forrest
-RUN echo 'forrest.home=/usr/local/apache-forrest' > build.properties
-RUN chmod -R 0777 /usr/local/apache-forrest/build /usr/local/apache-forrest/main \
-  /usr/local/apache-forrest/plugins
-ENV FORREST_HOME /usr/local/apache-forrest
+# Install nodejs 6
+RUN curl -sSL https://deb.nodesource.com/setup_6.x \
+  | bash - \
+ && apt-get -qqy install nodejs \
+ && apt-get -qqy clean \
+ && rm -rf /var/lib/apt/lists \
+ && npm install -g grunt-cli \
+ && npm cache clean
 
 # Install Perl modules
-RUN curl -L http://cpanmin.us | perl - --self-upgrade # non-interactive cpan
-RUN cpanm install Module::Install Module::Install::ReadmeFromPod \
+RUN curl -L https://cpanmin.us | perl - --self-upgrade && \
+  cpanm  --mirror https://www.cpan.org/ install Module::Install Module::Install::ReadmeFromPod \
   Module::Install::Repository \
   Math::BigInt JSON::XS Try::Tiny Regexp::Common Encode \
   IO::String Object::Tiny Compress::Zlib Test::More \
-  Test::Exception Test::Pod
+  Test::Exception Test::Pod Perl::Critic Compress::Zstd
+
+# Install PHP
+# TODO: Remove php5-related packages when we drop PHP 5.6 support in the future
+# TODO: Consolidate the php versions into a single one (7.x) when we drop PHP 5.6 support in the future
+ENV PHP5_VERSION=5.6 \
+    PHP7_VERSION=7.1
+RUN curl -sSL https://packages.sury.org/php/apt.gpg \
+  | apt-key add --no-tty - \
+ && echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list \
+ && apt-get -qqy update \
+ && apt-get -qqy install --no-install-recommends php${PHP5_VERSION} \
+                                                 php${PHP5_VERSION}-gmp \
+ && apt-get -qqy clean \
+ && rm -rf /var/lib/apt/lists
+# TODO: Install PHPUnit 5.7, which is the only version that supports both PHP 5.6 and 7.x
+# TODO: use PHPUnit 7.x instead of 5.7 when we drop PHP 5.6 support in the future
+RUN curl -sSL https://phar.phpunit.de/phpunit-5.6.phar > /usr/local/bin/phpunit \
+ && chmod +x /usr/local/bin/phpunit
+
+# Install Perl modules
+RUN curl -sSL https://cpanmin.us \
+  | perl - --self-upgrade \
+ && cpanm --mirror https://www.cpan.org/ install Compress::Zlib \
+                                                 Compress::Zstd \
+                                                 Encode \
+                                                 IO::String \
+                                                 JSON::XS \
+                                                 Math::BigInt \
+                                                 Module::Install \
+                                                 Module::Install::ReadmeFromPod \
+                                                 Module::Install::Repository \
+                                                 Object::Tiny \
+                                                 Perl::Critic \
+                                                 Regexp::Common \
+                                                 Test::Exception \
+                                                 Test::More \
+                                                 Test::Pod \
+                                                 Try::Tiny \
+ && rm -rf .cpanm
+
+# Install Python packages
+ENV PIP_NO_CACHE_DIR=off
+
+# Install Python2 packages
+RUN python2 -m pip install --upgrade pip setuptools \
+ && python2 -m pip install zstandard
+
+# Install Python3 packages
+RUN python3 -m pip install --upgrade pip setuptools \
+ && python3 -m pip install zstandard
 
 # Install Ruby modules
 RUN gem install echoe yajl-ruby multi_json snappy
 
-# Install global Node modules
-RUN npm install -g grunt-cli
+# Install .NET SDK
+RUN curl -sSLO https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb \
+ && dpkg -i packages-microsoft-prod.deb \
+ && rm packages-microsoft-prod.deb \
+ && apt-get -qqy update \
+ && apt-get -qqy install --no-install-recommends dotnet-sdk-2.2 \
+ && apt-get -qqy clean \
+ && rm -rf /var/lib/apt/lists

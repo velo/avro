@@ -10,7 +10,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,8 +25,8 @@ import logging
 import os
 import zlib
 
-from avro import schema
 from avro import io as avro_io
+from avro import schema
 
 try:
   import snappy
@@ -57,7 +57,7 @@ SYNC_SIZE = 16
 SYNC_INTERVAL = 1000 * SYNC_SIZE
 
 # Schema of the container header:
-META_SCHEMA = schema.Parse("""
+META_SCHEMA = schema.parse("""
 {
   "type": "record", "name": "org.apache.avro.file.Header",
   "fields": [{
@@ -164,7 +164,7 @@ class DataFileWriter(object):
       # get schema used to write existing file
       schema_from_file = dfr.GetMeta('avro.schema').decode('utf-8')
       self.SetMeta('avro.schema', schema_from_file)
-      self.datum_writer.writer_schema = schema.Parse(schema_from_file)
+      self.datum_writer.writer_schema = schema.parse(schema_from_file)
 
       # seek to the end of the file and prepare for writing
       writer.seek(0, 2)
@@ -283,7 +283,7 @@ class DataFileWriter(object):
     self.writer.write(compressed_data)
 
     # Write CRC32 checksum for Snappy
-    if self.GetMeta(CODEC_KEY) == 'snappy':
+    if codec == 'snappy':
       self.encoder.write_crc32(uncompressed_data)
 
     # write sync marker
@@ -364,7 +364,7 @@ class DataFileReader(object):
     # get ready to read
     self._block_count = 0
     self.datum_reader.writer_schema = (
-        schema.Parse(self.GetMeta(SCHEMA_KEY).decode('utf-8')))
+        schema.parse(self.GetMeta(SCHEMA_KEY).decode('utf-8')))
 
   def __enter__(self):
     return self

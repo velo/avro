@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,6 +51,15 @@ RecordSchema::addField(const std::string &name, const Schema &fieldSchema)
     node_->addLeaf(fieldSchema.root());
 }
 
+std::string RecordSchema::getDoc() const
+{
+    return node_->getDoc();
+}
+void RecordSchema::setDoc(const std::string& doc)
+{
+    node_->setDoc(doc);
+}
+
 EnumSchema::EnumSchema(const std::string &name) :
     Schema(new NodeEnum)
 {
@@ -69,7 +78,19 @@ ArraySchema::ArraySchema(const Schema &itemsSchema) :
     node_->addLeaf(itemsSchema.root());
 }
 
+ArraySchema::ArraySchema(const ArraySchema &itemsSchema) :
+    Schema(new NodeArray)
+{
+    node_->addLeaf(itemsSchema.root());
+}
+
 MapSchema::MapSchema(const Schema &valuesSchema) :
+    Schema(new NodeMap)
+{
+    node_->addLeaf(valuesSchema.root());
+}
+
+MapSchema::MapSchema(const MapSchema &valuesSchema) :
     Schema(new NodeMap)
 {
     node_->addLeaf(valuesSchema.root());

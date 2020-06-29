@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,6 +33,8 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
 
+#include <boost/algorithm/string_regex.hpp>
+
 #include "Compiler.hh"
 #include "ValidSchema.hh"
 #include "NodeImpl.hh"
@@ -51,6 +53,12 @@ using boost::lexical_cast;
 
 using avro::ValidSchema;
 using avro::compileJsonSchema;
+
+#if __cplusplus >= 201703L
+#define ANY_NS  "std"
+#else
+#define ANY_NS  "boost"
+#endif
 
 struct PendingSetterGetter {
     string structName;
@@ -119,6 +127,23 @@ public:
 
 static string decorate(const avro::Name& name)
 {
+    static const char * cppReservedWords[] = {
+        "alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand", "bitor", "bool", "break",
+        "case", "catch", "char", "char8_t", "char16_t", "char32_t", "class", "compl", "concept",
+        "const", "consteval", "constexpr", "const_cast", "continue", "co_await", "co_return",
+        "co_yield", "decltype", "default", "delete", "do", "double", "dynamic_cast", "else",
+        "enum", "explicit", "export", "extern", "false", "float", "for", "friend", "goto", "if",
+        "import", "inline", "int", "long", "module", "mutable", "namespace", "new", "noexcept", "not",
+        "not_eq", "nullptr", "operator", "or", "or_eq", "private", "protected", "public", "reflexpr",
+        "register", "reinterpret_cast", "requires", "return", "short", "signed", "sizeof", "static",
+        "static_assert", "static_cast", "struct", "switch", "synchronized", "template", "this",
+        "thread_local", "throw", "true", "try", "typedef", "typeid", "typename", "union", "unsigned",
+        "using", "virtual", "void", "volatile", "wchar_t", "while", "xor", "xor_eq"
+    };
+
+    for (size_t i = 0; i < sizeof(cppReservedWords)/sizeof(cppReservedWords[0]); i++)
+        if (strcmp(name.simpleName().c_str(), cppReservedWords[i]) == 0)
+            return name.simpleName() + '_';
     return name.simpleName();
 }
 
@@ -130,10 +155,10 @@ string CodeGen::fullname(const string& name) const
 string CodeGen::generateEnumType(const NodePtr& n)
 {
     string s = decorate(n->name());
-    os_ << "enum " << s << " {\n";
+    os_ << "enum class " << s << ": unsigned {\n";
     size_t c = n->names();
     for (size_t i = 0; i < c; ++i) {
-        os_ << "    " << n->nameAt(i) << ",\n";
+        os_ << "    " << decorate(n->nameAt(i)) << ",\n";
     }
     os_ << "};\n\n";
     return s;
@@ -167,12 +192,14 @@ string CodeGen::cppTypeOf(const NodePtr& n)
     case avro::AVRO_MAP:
         return "std::map<std::string, " + cppTypeOf(n->leafAt(1)) + " >";
     case avro::AVRO_FIXED:
-        return "boost::array<uint8_t, " +
+        return "std::array<uint8_t, " +
             lexical_cast<string>(n->fixedSize()) + ">";
     case avro::AVRO_SYMBOLIC:
         return cppTypeOf(resolveSymbol(n));
     case avro::AVRO_UNION:
         return fullname(done[n]);
+    case avro::AVRO_NULL:
+        return "avro::null";
     default:
         return "$Undefined$";
     }
@@ -215,6 +242,7 @@ static string cppNameOf(const NodePtr& n)
 string CodeGen::generateRecordType(const NodePtr& n)
 {
     size_t c = n->leaves();
+    string decoratedName = decorate(n->name());
     vector<string> types;
     for (size_t i = 0; i < c; ++i) {
         types.push_back(generateType(n->leafAt(i)));
@@ -225,7 +253,6 @@ string CodeGen::generateRecordType(const NodePtr& n)
         return it->second;
     }
 
-    string decoratedName = decorate(n->name());
     os_ << "struct " << decoratedName << " {\n";
     if (! noUnion_) {
         for (size_t i = 0; i < c; ++i) {
@@ -264,7 +291,7 @@ string CodeGen::generateRecordType(const NodePtr& n)
     }
     os_ << "        { }\n";
     os_ << "};\n\n";
-    return decorate(n->name());
+    return decoratedName;
 }
 
 void makeCanonical(string& s, bool foldCase)
@@ -305,7 +332,7 @@ static void generateGetterAndSetter(ostream& os,
         << "        throw avro::Exception(\"Invalid type for "
             << "union\");\n"
         << "    }\n"
-        << "    return boost::any_cast<" << type << " >(value_);\n"
+        << "    return " << ANY_NS << "::any_cast<" << type << " >(value_);\n"
         << "}\n\n";
 
     os << "inline\n"
@@ -363,7 +390,7 @@ string CodeGen::generateUnionType(const NodePtr& n)
     os_ << "struct " << result << " {\n"
         << "private:\n"
         << "    size_t idx_;\n"
-        << "    boost::any value_;\n"
+        << "    " << ANY_NS << "::any value_;\n"
         << "public:\n"
         << "    size_t idx() const { return idx_; }\n";
 
@@ -375,7 +402,7 @@ string CodeGen::generateUnionType(const NodePtr& n)
                 << "    }\n"
                 << "    void set_null() {\n"
                 << "        idx_ = " << i << ";\n"
-                << "        value_ = boost::any();\n"
+                << "        value_ = " << ANY_NS << "::any();\n"
                 << "    }\n";
         } else {
             const string& type = types[i];
@@ -391,7 +418,7 @@ string CodeGen::generateUnionType(const NodePtr& n)
     pendingConstructors.push_back(PendingConstructor(result, types[0],
         n->leafAt(0)->type() != avro::AVRO_NULL));
     os_ << "};\n\n";
-    
+
     return result;
 }
 
@@ -425,9 +452,31 @@ string CodeGen::doGenerateType(const NodePtr& n)
     case avro::AVRO_FIXED:
         return cppTypeOf(n);
     case avro::AVRO_ARRAY:
-        return "std::vector<" + generateType(n->leafAt(0)) + " >";
+    {
+        const NodePtr& ln = n->leafAt(0);
+        string dn;
+        if (doing.find(n) == doing.end()) {
+            doing.insert(n);
+            dn = generateType(ln);
+            doing.erase(n);
+        } else {
+            dn = generateDeclaration(ln);
+        }
+        return "std::vector<" + dn + " >";
+    }
     case avro::AVRO_MAP:
-        return "std::map<std::string, " + generateType(n->leafAt(1)) + " >";
+    {
+        const NodePtr& ln = n->leafAt(1);
+        string dn;
+        if (doing.find(n) == doing.end()) {
+            doing.insert(n);
+            dn = generateType(ln);
+            doing.erase(n);
+        } else {
+            dn = generateDeclaration(ln);
+        }
+        return "std::map<std::string, " + dn + " >";
+    }
     case avro::AVRO_RECORD:
         return generateRecordType(n);
     case avro::AVRO_ENUM:
@@ -477,35 +526,21 @@ void CodeGen::generateEnumTraits(const NodePtr& n)
 {
 	string dname = decorate(n->name());
 	string fn = fullname(dname);
-	size_t c = n->names();
-	string first; 
-	string last;
-	if (!ns_.empty())
-	{
-		first = ns_;
-		first += "::";
-		first += n->nameAt(0);
+	string last = n->nameAt(n->names() - 1);
 
-		last = ns_;
-		last += "::";
-		last += n->nameAt(c-1);
-	} else {
-		first = n->nameAt(0);
-		last = n->nameAt(c-1);
-	}
 	os_ << "template<> struct codec_traits<" << fn << "> {\n"
 		<< "    static void encode(Encoder& e, " << fn << " v) {\n"
-		<< "		if (v < "  << first << " || v > " << last << ")\n" 
+		<< "		if (v > " << fn << "::" << last << ")\n"
 		<< "		{\n"
 		<< "			std::ostringstream error;\n"
-		<< "			error << \"enum value \" << v << \" is out of bound for " << fn << " and cannot be encoded\";\n"
+		<< "			error << \"enum value \" << static_cast<unsigned>(v) << \" is out of bound for " << fn << " and cannot be encoded\";\n"
 		<< "			throw avro::Exception(error.str());\n"
 		<< "		}\n"
-		<< "        e.encodeEnum(v);\n"
+		<< "        e.encodeEnum(static_cast<size_t>(v));\n"
 		<< "    }\n"
 		<< "    static void decode(Decoder& d, " << fn << "& v) {\n"
 		<< "		size_t index = d.decodeEnum();\n"
-		<< "		if (index < " << first << " || index > " << last << ")\n" 
+		<< "		if (index > static_cast<size_t>(" << fn << "::" << last << "))\n"
 		<< "		{\n"
 		<< "			std::ostringstream error;\n"
 		<< "			error << \"enum value \" << index << \" is out of bound for " << fn << " and cannot be decoded\";\n"
@@ -650,7 +685,7 @@ void CodeGen::generateTraits(const NodePtr& n)
 
 void CodeGen::emitCopyright()
 {
-    os_ << 
+    os_ <<
         "/**\n"
         " * Licensed to the Apache Software Foundation (ASF) under one\n"
         " * or more contributor license agreements.  See the NOTICE file\n"
@@ -660,7 +695,7 @@ void CodeGen::emitCopyright()
         " * \"License\"); you may not use this file except in compliance\n"
         " * with the License.  You may obtain a copy of the License at\n"
         " *\n"
-        " *     http://www.apache.org/licenses/LICENSE-2.0\n"
+        " *     https://www.apache.org/licenses/LICENSE-2.0\n"
         " *\n"
         " * Unless required by applicable law or agreed to in writing, "
             "software\n"
@@ -691,14 +726,24 @@ void CodeGen::generate(const ValidSchema& schema)
     os_ << "#define " << h << "\n\n\n";
 
     os_ << "#include <sstream>\n"
+#if __cplusplus >= 201703L
+        << "#include <any>\n"
+#else
         << "#include \"boost/any.hpp\"\n"
+#endif
         << "#include \"" << includePrefix_ << "Specific.hh\"\n"
         << "#include \"" << includePrefix_ << "Encoder.hh\"\n"
         << "#include \"" << includePrefix_ << "Decoder.hh\"\n"
         << "\n";
 
+    vector<string> nsVector;
     if (! ns_.empty()) {
-        os_ << "namespace " << ns_ << " {\n";
+        boost::algorithm::split_regex(nsVector, ns_, boost::regex("::"));
+        for (vector<string>::const_iterator it =
+            nsVector.begin();
+            it != nsVector.end(); ++it) {
+            os_ << "namespace " << *it << " {\n";
+        }
         inNamespace_ = true;
     }
 
@@ -721,7 +766,11 @@ void CodeGen::generate(const ValidSchema& schema)
 
     if (! ns_.empty()) {
         inNamespace_ = false;
-        os_ << "}\n";
+        for (vector<string>::const_iterator it =
+            nsVector.begin();
+            it != nsVector.end(); ++it) {
+            os_ << "}\n";
+        }
     }
 
     os_ << "namespace avro {\n";

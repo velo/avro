@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,19 +24,30 @@ import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
 
 /**
+<<<<<<< HEAD
  * Expert:  a custom encoder and decoder that writes
  * an object directly to avro.
  * No validation is performed to check that the encoding conforms to the schema.
  * Invalid implementations may result in an unreadable file.
  * The use of {@link org.apache.avro.io.ValidatingEncoder} is recommended.
+=======
+ * Expert: a custom encoder and decoder that writes an object directly to avro.
+ * No validation is performed to check that the encoding conforms to the schema.
+ * Invalid implementations may result in an unreadable file. The use of
+ * {@link org.apache.avro.io.ValidatingEncoder} is recommended.
+>>>>>>> 1.9.2
  *
- * @param <T> The class of objects that can be serialized with this encoder / decoder.
+ * @param <T> The class of objects that can be serialized with this encoder /
+ *        decoder.
  */
 public abstract class CustomEncoding<T> {
 
   protected Schema schema;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1.9.2
   protected abstract void write(Object datum, Encoder out) throws IOException;
 
   protected abstract T read(Object reuse, Decoder in) throws IOException;
@@ -48,6 +59,5 @@ public abstract class CustomEncoding<T> {
   protected Schema getSchema() {
     return schema;
   }
-
 
 }

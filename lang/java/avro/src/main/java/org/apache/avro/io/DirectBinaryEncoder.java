@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,14 +24,15 @@ import java.io.OutputStream;
  * An {@link Encoder} for Avro's binary encoding that does not buffer output.
  * <p/>
  * This encoder does not buffer writes, and as a result is slower than
- * {@link BufferedBinaryEncoder}. However, it is lighter-weight and useful when the
- * buffering in BufferedBinaryEncoder is not desired and/or the Encoder is
+ * {@link BufferedBinaryEncoder}. However, it is lighter-weight and useful when
+ * the buffering in BufferedBinaryEncoder is not desired and/or the Encoder is
  * very short lived.
  * <p/>
  * To construct, use
  * {@link EncoderFactory#directBinaryEncoder(OutputStream, BinaryEncoder)}
- *  <p/>
+ * <p/>
  * DirectBinaryEncoder is not thread-safe
+ * 
  * @see BinaryEncoder
  * @see EncoderFactory
  * @see Encoder
@@ -42,15 +43,22 @@ public class DirectBinaryEncoder extends BinaryEncoder {
   // the buffer is used for writing floats, doubles, and large longs.
   private final byte[] buf = new byte[12];
 
+<<<<<<< HEAD
   /** Create a writer that sends its output to the underlying stream
    *  <code>out</code>.
+=======
+  /**
+   * Create a writer that sends its output to the underlying stream
+   * <code>out</code>.
+>>>>>>> 1.9.2
    **/
   DirectBinaryEncoder(OutputStream out) {
     configure(out);
   }
 
   DirectBinaryEncoder configure(OutputStream out) {
-    if (null == out) throw new NullPointerException("OutputStream cannot be null!");
+    if (null == out)
+      throw new NullPointerException("OutputStream cannot be null!");
     this.out = out;
     return this;
   }
@@ -65,9 +73,10 @@ public class DirectBinaryEncoder extends BinaryEncoder {
     out.write(b ? 1 : 0);
   }
 
-  /* buffering is slower for ints that encode to just 1 or
-   * two bytes, and and faster for large ones.
-   * (Sun JRE 1.6u22, x64 -server) */
+  /*
+   * buffering is slower for ints that encode to just 1 or two bytes, and and
+   * faster for large ones. (Sun JRE 1.6u22, x64 -server)
+   */
   @Override
   public void writeInt(int n) throws IOException {
     int val = (n << 1) ^ (n >> 31);
@@ -83,19 +92,26 @@ public class DirectBinaryEncoder extends BinaryEncoder {
     out.write(buf, 0, len);
   }
 
+<<<<<<< HEAD
   /* buffering is slower for writeLong when the number is small enough to
    * fit in an int.
    * (Sun JRE 1.6u22, x64 -server) */
+=======
+  /*
+   * buffering is slower for writeLong when the number is small enough to fit in
+   * an int. (Sun JRE 1.6u22, x64 -server)
+   */
+>>>>>>> 1.9.2
   @Override
   public void writeLong(long n) throws IOException {
     long val = (n << 1) ^ (n >> 63); // move sign to low-order bit
     if ((val & ~0x7FFFFFFFL) == 0) {
       int i = (int) val;
       while ((i & ~0x7F) != 0) {
-        out.write((byte)((0x80 | i) & 0xFF));
+        out.write((byte) ((0x80 | i) & 0xFF));
         i >>>= 7;
       }
-      out.write((byte)i);
+      out.write((byte) i);
       return;
     }
     int len = BinaryData.encodeLong(n, buf, 0);
@@ -110,7 +126,6 @@ public class DirectBinaryEncoder extends BinaryEncoder {
 
   @Override
   public void writeDouble(double d) throws IOException {
-    byte[] buf = new byte[8];
     int len = BinaryData.encodeDouble(d, buf, 0);
     out.write(buf, 0, len);
   }

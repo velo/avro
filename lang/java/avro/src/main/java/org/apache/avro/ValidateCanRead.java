@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,16 +27,23 @@ package org.apache.avro;
 class ValidateCanRead implements SchemaValidationStrategy {
 
   /**
+<<<<<<< HEAD
    * Validate that the first schema provided can be used to read data written
    * with the second schema, according to the default Avro schema resolution
    * rules.
    *
    * @throws SchemaValidationException
    *           if the first schema cannot read data written by the second.
+=======
+   * Validate that the first schema provided can be used to read data written with
+   * the second schema, according to the default Avro schema resolution rules.
+   *
+   * @throws SchemaValidationException if the first schema cannot read data
+   *                                   written by the second.
+>>>>>>> 1.9.2
    */
   @Override
-  public void validate(Schema toValidate, Schema existing)
-      throws SchemaValidationException {
+  public void validate(Schema toValidate, Schema existing) throws SchemaValidationException {
     ValidateMutualRead.canRead(existing, toValidate);
   }
 

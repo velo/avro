@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@
 #ifndef avro_BufferReader_hh__
 #define avro_BufferReader_hh__
 
+#include <type_traits>
 #include "Buffer.hh"
 
 #ifdef min
@@ -156,7 +157,7 @@ class AVRO_DECL BufferReader : private boost::noncopyable
 
     template<typename T>
     bool read(T &val)  {
-        return read(val, boost::is_fundamental<T>());
+        return read(val, std::is_fundamental<T>());
     }
 
     /** 
@@ -235,7 +236,7 @@ class AVRO_DECL BufferReader : private boost::noncopyable
     }
 
     template<typename T>
-    bool read(T &val, const boost::true_type&)
+    bool read(T &val, const std::true_type&)
     {
         if(sizeof(T) > bytesRemaining_) {
             return false;
@@ -251,11 +252,11 @@ class AVRO_DECL BufferReader : private boost::noncopyable
         return true;
     }
 
-    /// An uninstantiable function, this is if boost::is_fundamental check fails
+    /// An uninstantiable function, that is if boost::is_fundamental check fails
     template<typename T>
-    bool read(T &val, const boost::false_type&)
+    bool read(T &val, const std::false_type&)
     {
-        BOOST_STATIC_ASSERT(sizeof(T)==0);
+        static_assert(sizeof(T) == 0, "Not a valid type to read");
         return false;
     }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,8 +67,7 @@ public class Conversions {
 
     @Override
     public Schema getRecommendedSchema() {
-      throw new UnsupportedOperationException(
-          "No recommended schema for decimal (scale is required)");
+      throw new UnsupportedOperationException("No recommended schema for decimal (scale is required)");
     }
 
     @Override
@@ -81,7 +80,11 @@ public class Conversions {
       int scale = ((LogicalTypes.Decimal) type).getScale();
       // always copy the bytes out because BigInteger has no offset/length ctor
       byte[] bytes = new byte[value.remaining()];
+<<<<<<< HEAD
       value.get(bytes);
+=======
+      value.duplicate().get(bytes);
+>>>>>>> 1.9.2
       return new BigDecimal(new BigInteger(bytes), scale);
     }
 
@@ -89,8 +92,7 @@ public class Conversions {
     public ByteBuffer toBytes(BigDecimal value, Schema schema, LogicalType type) {
       int scale = ((LogicalTypes.Decimal) type).getScale();
       if (scale != value.scale()) {
-        throw new AvroTypeException("Cannot encode decimal with scale " +
-            value.scale() + " as scale " + scale);
+        throw new AvroTypeException("Cannot encode decimal with scale " + value.scale() + " as scale " + scale);
       }
       return ByteBuffer.wrap(value.unscaledValue().toByteArray());
     }
@@ -105,8 +107,7 @@ public class Conversions {
     public GenericFixed toFixed(BigDecimal value, Schema schema, LogicalType type) {
       int scale = ((LogicalTypes.Decimal) type).getScale();
       if (scale != value.scale()) {
-        throw new AvroTypeException("Cannot encode decimal with scale " +
-            value.scale() + " as scale " + scale);
+        throw new AvroTypeException("Cannot encode decimal with scale " + value.scale() + " as scale " + scale);
       }
 
       byte fillByte = (byte) (value.signum() < 0 ? 0xFF : 0x00);
@@ -114,19 +115,16 @@ public class Conversions {
       byte[] bytes = new byte[schema.getFixedSize()];
       int offset = bytes.length - unscaled.length;
 
-      for (int i = 0; i < bytes.length; i += 1) {
-        if (i < offset) {
-          bytes[i] = fillByte;
-        } else {
-          bytes[i] = unscaled[i - offset];
-        }
-      }
+      // Fill the front of the array and copy remaining with unscaled values
+      Arrays.fill(bytes, 0, offset, fillByte);
+      System.arraycopy(unscaled, 0, bytes, offset, bytes.length - offset);
 
       return new GenericData.Fixed(schema, bytes);
     }
   }
 
   /**
+<<<<<<< HEAD
    * Convert a underlying representation of a logical type (such as a
    * ByteBuffer) to a higher level object (such as a BigDecimal).
    * @param datum The object to be converted.
@@ -142,17 +140,40 @@ public class Conversions {
    */
   public static Object convertToLogicalType(Object datum, Schema schema, LogicalType type,
                                             Conversion<?> conversion) {
+=======
+   * Convert a underlying representation of a logical type (such as a ByteBuffer)
+   * to a higher level object (such as a BigDecimal).
+   *
+   * @param datum      The object to be converted.
+   * @param schema     The schema of datum. Cannot be null if datum is not null.
+   * @param type       The {@link org.apache.avro.LogicalType} of datum. Cannot be
+   *                   null if datum is not null.
+   * @param conversion The tool used to finish the conversion. Cannot be null if
+   *                   datum is not null.
+   * @return The result object, which is a high level object of the logical type.
+   *         If a null datum is passed in, a null value will be returned.
+   * @throws IllegalArgumentException if a null schema, type or conversion is
+   *                                  passed in while datum is not null.
+   */
+  public static Object convertToLogicalType(Object datum, Schema schema, LogicalType type, Conversion<?> conversion) {
+>>>>>>> 1.9.2
     if (datum == null) {
       return null;
     }
 
     if (schema == null || type == null || conversion == null) {
+<<<<<<< HEAD
       throw new IllegalArgumentException("Parameters cannot be null! Parameter values:" +
           Arrays.deepToString(new Object[]{datum, schema, type, conversion}));
+=======
+      throw new IllegalArgumentException("Parameters cannot be null! Parameter values:"
+          + Arrays.deepToString(new Object[] { datum, schema, type, conversion }));
+>>>>>>> 1.9.2
     }
 
     try {
       switch (schema.getType()) {
+<<<<<<< HEAD
         case RECORD:  return conversion.fromRecord((IndexedRecord) datum, schema, type);
         case ENUM:    return conversion.fromEnumSymbol((GenericEnumSymbol) datum, schema, type);
         case ARRAY:   return conversion.fromArray((Collection) datum, schema, type);
@@ -170,12 +191,44 @@ public class Conversions {
     } catch (ClassCastException e) {
       throw new AvroRuntimeException("Cannot convert " + datum + ":" +
           datum.getClass().getSimpleName() + ": expected generic type", e);
+=======
+      case RECORD:
+        return conversion.fromRecord((IndexedRecord) datum, schema, type);
+      case ENUM:
+        return conversion.fromEnumSymbol((GenericEnumSymbol) datum, schema, type);
+      case ARRAY:
+        return conversion.fromArray((Collection) datum, schema, type);
+      case MAP:
+        return conversion.fromMap((Map<?, ?>) datum, schema, type);
+      case FIXED:
+        return conversion.fromFixed((GenericFixed) datum, schema, type);
+      case STRING:
+        return conversion.fromCharSequence((CharSequence) datum, schema, type);
+      case BYTES:
+        return conversion.fromBytes((ByteBuffer) datum, schema, type);
+      case INT:
+        return conversion.fromInt((Integer) datum, schema, type);
+      case LONG:
+        return conversion.fromLong((Long) datum, schema, type);
+      case FLOAT:
+        return conversion.fromFloat((Float) datum, schema, type);
+      case DOUBLE:
+        return conversion.fromDouble((Double) datum, schema, type);
+      case BOOLEAN:
+        return conversion.fromBoolean((Boolean) datum, schema, type);
+      }
+      return datum;
+    } catch (ClassCastException e) {
+      throw new AvroRuntimeException(
+          "Cannot convert " + datum + ":" + datum.getClass().getSimpleName() + ": expected generic type", e);
+>>>>>>> 1.9.2
     }
   }
 
   /**
    * Convert a high level representation of a logical type (such as a BigDecimal)
    * to the its underlying representation object (such as a ByteBuffer)
+<<<<<<< HEAD
    * @param datum The object to be converted.
    * @param schema The schema of datum. Cannot be null if datum is not null.
    * @param type The {@link org.apache.avro.LogicalType} of datum. Cannot
@@ -190,18 +243,40 @@ public class Conversions {
    */
   public static <T> Object convertToRawType(Object datum, Schema schema, LogicalType type,
                                             Conversion<T> conversion) {
+=======
+   *
+   * @param datum      The object to be converted.
+   * @param schema     The schema of datum. Cannot be null if datum is not null.
+   * @param type       The {@link org.apache.avro.LogicalType} of datum. Cannot be
+   *                   null if datum is not null.
+   * @param conversion The tool used to finish the conversion. Cannot be null if
+   *                   datum is not null.
+   * @return The result object, which is an underlying representation object of
+   *         the logical type. If the input param datum is null, a null value will
+   *         be returned.
+   * @throws IllegalArgumentException if a null schema, type or conversion is
+   *                                  passed in while datum is not null.
+   */
+  public static <T> Object convertToRawType(Object datum, Schema schema, LogicalType type, Conversion<T> conversion) {
+>>>>>>> 1.9.2
     if (datum == null) {
       return null;
     }
 
     if (schema == null || type == null || conversion == null) {
+<<<<<<< HEAD
       throw new IllegalArgumentException("Parameters cannot be null! Parameter values:" +
           Arrays.deepToString(new Object[]{datum, schema, type, conversion}));
+=======
+      throw new IllegalArgumentException("Parameters cannot be null! Parameter values:"
+          + Arrays.deepToString(new Object[] { datum, schema, type, conversion }));
+>>>>>>> 1.9.2
     }
 
     try {
       Class<T> fromClass = conversion.getConvertedType();
       switch (schema.getType()) {
+<<<<<<< HEAD
         case RECORD:
           return conversion.toRecord(fromClass.cast(datum), schema, type);
         case ENUM:
@@ -231,6 +306,37 @@ public class Conversions {
     } catch (ClassCastException e) {
       throw new AvroRuntimeException("Cannot convert " + datum + ":" +
           datum.getClass().getSimpleName() + ": expected logical type", e);
+=======
+      case RECORD:
+        return conversion.toRecord(fromClass.cast(datum), schema, type);
+      case ENUM:
+        return conversion.toEnumSymbol(fromClass.cast(datum), schema, type);
+      case ARRAY:
+        return conversion.toArray(fromClass.cast(datum), schema, type);
+      case MAP:
+        return conversion.toMap(fromClass.cast(datum), schema, type);
+      case FIXED:
+        return conversion.toFixed(fromClass.cast(datum), schema, type);
+      case STRING:
+        return conversion.toCharSequence(fromClass.cast(datum), schema, type);
+      case BYTES:
+        return conversion.toBytes(fromClass.cast(datum), schema, type);
+      case INT:
+        return conversion.toInt(fromClass.cast(datum), schema, type);
+      case LONG:
+        return conversion.toLong(fromClass.cast(datum), schema, type);
+      case FLOAT:
+        return conversion.toFloat(fromClass.cast(datum), schema, type);
+      case DOUBLE:
+        return conversion.toDouble(fromClass.cast(datum), schema, type);
+      case BOOLEAN:
+        return conversion.toBoolean(fromClass.cast(datum), schema, type);
+      }
+      return datum;
+    } catch (ClassCastException e) {
+      throw new AvroRuntimeException(
+          "Cannot convert " + datum + ":" + datum.getClass().getSimpleName() + ": expected logical type", e);
+>>>>>>> 1.9.2
     }
   }
 

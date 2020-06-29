@@ -1,36 +1,37 @@
-"""
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
-"""
+#!/usr/bin/env python
 
-__all__=["TetherTask","TaskType","inputProtocol","outputProtocol","HTTPRequestor"]
+##
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from avro import schema, protocol
-from avro import io as avio
-from avro import ipc
+from __future__ import absolute_import, division, print_function
 
-import io as pyio
-import sys
-import os
-import traceback
-import logging
 import collections
-from StringIO import StringIO
+import io as pyio
+import logging
+import os
+import sys
 import threading
+import traceback
+from StringIO import StringIO
 
+from avro import io as avio
+from avro import ipc, protocol, schema
+
+__all__ = ["TetherTask", "TaskType", "inputProtocol", "outputProtocol", "HTTPRequestor"]
 
 # create protocol objects for the input and output protocols
 # The build process should copy InputProtocol.avpr and OutputProtocol.avpr
@@ -208,7 +209,7 @@ class TetherTask(object):
     The subclass provides these schemas in order to tell this class which schemas it expects.
     The configure request will also provide the schemas that the parent process is using.
     This allows us to check whether the schemas match and if not whether we can resolve
-    the differences (see http://avro.apache.org/docs/current/spec.html#Schema+Resolution))
+    the differences (see https://avro.apache.org/docs/current/spec.html#Schema+Resolution))
 
     """
 
@@ -320,7 +321,7 @@ class TetherTask(object):
              - This is an enumeration which is specified in the input protocol
     inSchemaText -  string containing the input schema
                  - This is the actual schema with which the data was encoded
-                   i.e it is the writer_schema (see http://avro.apache.org/docs/current/spec.html#Schema+Resolution)
+                   i.e it is the writer_schema (see https://avro.apache.org/docs/current/spec.html#Schema+Resolution)
                    This is the schema the parent process is using which might be different
                    from the one provided by the subclass of tether_task
 

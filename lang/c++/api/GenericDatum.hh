@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,12 +24,18 @@
 #include <map>
 #include <string>
 
-#include <boost/any.hpp>
+#if __cplusplus >= 201703L
+#include <any>
+#else
+#include "boost/any.hpp"
+#endif
 
+#include "LogicalType.hh"
 #include "Node.hh"
 #include "ValidSchema.hh"
 
 namespace avro {
+
 /**
  * Generic datum which can hold any Avro type. The datum has a type
  * and a value. The type is one of the Avro data types. The C++ type for
@@ -53,31 +59,43 @@ namespace avro {
  *
  */
 class AVRO_DECL GenericDatum {
+protected:
     Type type_;
+    LogicalType logicalType_;
+#if __cplusplus >= 201703L
+    std::any value_;
+#else
     boost::any value_;
+#endif
 
-    GenericDatum(Type t) : type_(t) { }
+    GenericDatum(Type t)
+        : type_(t), logicalType_(LogicalType::NONE) { }
+
+    GenericDatum(Type t, LogicalType logicalType)
+        : type_(t), logicalType_(logicalType) { }
 
     template <typename T>
-    GenericDatum(Type t, const T& v) : type_(t), value_(v) { }
+    GenericDatum(Type t, LogicalType logicalType, const T& v)
+        : type_(t), logicalType_(logicalType), value_(v) { }
 
     void init(const NodePtr& schema);
 public:
     /**
      * The avro data type this datum holds.
      */
-    Type type() const {
-        return type_;
-    }
+    Type type() const;
+
+    /**
+     * The avro logical type that augments the main data type this datum holds.
+     */
+    LogicalType logicalType() const;
 
     /**
      * Returns the value held by this datum.
      * T The type for the value. This must correspond to the
      * avro type returned by type().
      */
-    template<typename T> const T& value() const {
-        return *boost::any_cast<T>(&value_);
-    }
+    template<typename T> const T& value() const;
 
     /**
      * Returns the reference to the value held by this datum, which
@@ -88,9 +106,7 @@ public:
      * T The type for the value. This must correspond to the
      * avro type returned by type().
      */
-    template<typename T> T& value() {
-        return *boost::any_cast<T>(&value_);
-    }
+    template<typename T> T& value();
 
     /**
      * Returns true if and only if this datum is a union.
@@ -110,30 +126,36 @@ public:
     void selectBranch(size_t branch);
 
     /// Makes a new AVRO_NULL datum.
-    GenericDatum() : type_(AVRO_NULL) { }
+    GenericDatum() : type_(AVRO_NULL), logicalType_(LogicalType::NONE) { }
 
     /// Makes a new AVRO_BOOL datum whose value is of type bool.
-    GenericDatum(bool v) : type_(AVRO_BOOL), value_(v) { }
+    GenericDatum(bool v)
+        : type_(AVRO_BOOL), logicalType_(LogicalType::NONE), value_(v) { }
 
     /// Makes a new AVRO_INT datum whose value is of type int32_t.
-    GenericDatum(int32_t v) : type_(AVRO_INT), value_(v) { }
+    GenericDatum(int32_t v)
+        : type_(AVRO_INT), logicalType_(LogicalType::NONE), value_(v) { }
 
     /// Makes a new AVRO_LONG datum whose value is of type int64_t.
-    GenericDatum(int64_t v) : type_(AVRO_LONG), value_(v) { }
+    GenericDatum(int64_t v)
+        : type_(AVRO_LONG), logicalType_(LogicalType::NONE), value_(v) { }
 
     /// Makes a new AVRO_FLOAT datum whose value is of type float.
-    GenericDatum(float v) : type_(AVRO_FLOAT), value_(v) { }
+    GenericDatum(float v)
+        : type_(AVRO_FLOAT), logicalType_(LogicalType::NONE), value_(v) { }
 
     /// Makes a new AVRO_DOUBLE datum whose value is of type double.
-    GenericDatum(double v) : type_(AVRO_DOUBLE), value_(v) { }
+    GenericDatum(double v)
+        : type_(AVRO_DOUBLE), logicalType_(LogicalType::NONE), value_(v) { }
 
     /// Makes a new AVRO_STRING datum whose value is of type std::string.
-    GenericDatum(const std::string& v) : type_(AVRO_STRING), value_(v) { }
+    GenericDatum(const std::string& v)
+        : type_(AVRO_STRING), logicalType_(LogicalType::NONE), value_(v) { }
 
     /// Makes a new AVRO_BYTES datum whose value is of type
     /// std::vector<uint8_t>.
     GenericDatum(const std::vector<uint8_t>& v) :
-        type_(AVRO_BYTES), value_(v) { }
+        type_(AVRO_BYTES), logicalType_(LogicalType::NONE), value_(v) { }
 
     /**
      * Constructs a datum corresponding to the given avro type.
@@ -151,9 +173,13 @@ public:
      */
     template<typename T>
     GenericDatum(const NodePtr& schema, const T& v) :
-        type_(schema->type()) {
+        type_(schema->type()), logicalType_(schema->logicalType()) {
         init(schema);
-        value<T>() = v;
+#if __cplusplus >= 201703L
+        *std::any_cast<T>(&value_) = v;
+#else
+        *boost::any_cast<T>(&value_) = v;
+#endif
     }
 
     /**
@@ -201,6 +227,7 @@ public:
      */
     GenericUnion(const NodePtr& schema) :
         GenericContainer(AVRO_UNION, schema), curBranch_(schema->leaves()) {
+        selectBranch(0);
     }
 
     /**
@@ -493,12 +520,56 @@ public:
     }
 };
 
+inline Type GenericDatum::type() const {
+    return (type_ == AVRO_UNION) ?
+#if __cplusplus >= 201703L
+        std::any_cast<GenericUnion>(&value_)->datum().type() :
+#else
+        boost::any_cast<GenericUnion>(&value_)->datum().type() :
+#endif
+        type_;
+}
+
+inline LogicalType GenericDatum::logicalType() const {
+    return logicalType_;
+}
+
+template<typename T> T& GenericDatum::value() {
+    return (type_ == AVRO_UNION) ?
+#if __cplusplus >= 201703L
+        std::any_cast<GenericUnion>(&value_)->datum().value<T>() :
+        *std::any_cast<T>(&value_);
+#else
+        boost::any_cast<GenericUnion>(&value_)->datum().value<T>() :
+        *boost::any_cast<T>(&value_);
+#endif
+}
+
+template<typename T> const T& GenericDatum::value() const {
+    return (type_ == AVRO_UNION) ?
+#if __cplusplus >= 201703L
+        std::any_cast<GenericUnion>(&value_)->datum().value<T>() :
+        *std::any_cast<T>(&value_);
+#else
+        boost::any_cast<GenericUnion>(&value_)->datum().value<T>() :
+        *boost::any_cast<T>(&value_);
+#endif
+}
+
 inline size_t GenericDatum::unionBranch() const {
+#if __cplusplus >= 201703L
+    return std::any_cast<GenericUnion>(&value_)->currentBranch();
+#else
     return boost::any_cast<GenericUnion>(&value_)->currentBranch();
+#endif
 }
 
 inline void GenericDatum::selectBranch(size_t branch) {
+#if __cplusplus >= 201703L
+    std::any_cast<GenericUnion>(&value_)->selectBranch(branch);
+#else
     boost::any_cast<GenericUnion>(&value_)->selectBranch(branch);
+#endif
 }
 
 }   // namespace avro

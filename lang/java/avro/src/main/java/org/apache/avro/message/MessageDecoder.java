@@ -7,7 +7,11 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
+<<<<<<< HEAD
  *   http://www.apache.org/licenses/LICENSE-2.0
+=======
+ *   https://www.apache.org/licenses/LICENSE-2.0
+>>>>>>> 1.9.2
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -27,6 +31,10 @@ import java.nio.ByteBuffer;
 
 /**
  * Deserializes a single datum from a ByteBuffer, byte array, or InputStream.
+<<<<<<< HEAD
+=======
+ * 
+>>>>>>> 1.9.2
  * @param <D> a datum class
  */
 public interface MessageDecoder<D> {
@@ -36,7 +44,11 @@ public interface MessageDecoder<D> {
    *
    * @param stream stream to read from
    * @return a datum read from the stream
+<<<<<<< HEAD
    * @throws BadHeaderException If the payload's header is not recognized.
+=======
+   * @throws BadHeaderException     If the payload's header is not recognized.
+>>>>>>> 1.9.2
    * @throws MissingSchemaException If the payload's schema cannot be found.
    * @throws IOException
    */
@@ -46,9 +58,15 @@ public interface MessageDecoder<D> {
    * Deserialize a single datum from an InputStream.
    *
    * @param stream stream to read from
+<<<<<<< HEAD
    * @param reuse a datum instance to reuse, avoiding instantiation if possible
    * @return a datum read from the stream
    * @throws BadHeaderException If the payload's header is not recognized.
+=======
+   * @param reuse  a datum instance to reuse, avoiding instantiation if possible
+   * @return a datum read from the stream
+   * @throws BadHeaderException     If the payload's header is not recognized.
+>>>>>>> 1.9.2
    * @throws MissingSchemaException If the payload's schema cannot be found.
    * @throws IOException
    */
@@ -59,7 +77,11 @@ public interface MessageDecoder<D> {
    *
    * @param encoded a ByteBuffer containing an encoded datum
    * @return a datum read from the stream
+<<<<<<< HEAD
    * @throws BadHeaderException If the payload's header is not recognized.
+=======
+   * @throws BadHeaderException     If the payload's header is not recognized.
+>>>>>>> 1.9.2
    * @throws MissingSchemaException If the payload's schema cannot be found.
    * @throws IOException
    */
@@ -69,9 +91,15 @@ public interface MessageDecoder<D> {
    * Deserialize a single datum from a ByteBuffer.
    *
    * @param encoded a ByteBuffer containing an encoded datum
+<<<<<<< HEAD
    * @param reuse a datum instance to reuse, avoiding instantiation if possible
    * @return a datum read from the stream
    * @throws BadHeaderException If the payload's header is not recognized.
+=======
+   * @param reuse   a datum instance to reuse, avoiding instantiation if possible
+   * @return a datum read from the stream
+   * @throws BadHeaderException     If the payload's header is not recognized.
+>>>>>>> 1.9.2
    * @throws MissingSchemaException If the payload's schema cannot be found.
    * @throws IOException
    */
@@ -82,7 +110,11 @@ public interface MessageDecoder<D> {
    *
    * @param encoded a byte array containing an encoded datum
    * @return a datum read from the stream
+<<<<<<< HEAD
    * @throws BadHeaderException If the payload's header is not recognized.
+=======
+   * @throws BadHeaderException     If the payload's header is not recognized.
+>>>>>>> 1.9.2
    * @throws MissingSchemaException If the payload's schema cannot be found.
    * @throws IOException
    */
@@ -92,9 +124,15 @@ public interface MessageDecoder<D> {
    * Deserialize a single datum from a byte array.
    *
    * @param encoded a byte array containing an encoded datum
+<<<<<<< HEAD
    * @param reuse a datum instance to reuse, avoiding instantiation if possible
    * @return a datum read from the stream
    * @throws BadHeaderException If the payload's header is not recognized.
+=======
+   * @param reuse   a datum instance to reuse, avoiding instantiation if possible
+   * @return a datum read from the stream
+   * @throws BadHeaderException     If the payload's header is not recognized.
+>>>>>>> 1.9.2
    * @throws MissingSchemaException If the payload's schema cannot be found.
    * @throws IOException
    */
@@ -110,6 +148,7 @@ public interface MessageDecoder<D> {
    */
   abstract class BaseDecoder<D> implements MessageDecoder<D> {
 
+<<<<<<< HEAD
     private static final ThreadLocal<ReusableByteArrayInputStream>
         BYTE_ARRAY_IN = new ThreadLocal<ReusableByteArrayInputStream>() {
           @Override
@@ -125,6 +164,13 @@ public interface MessageDecoder<D> {
             return new ReusableByteBufferInputStream();
           }
         };
+=======
+    private static final ThreadLocal<ReusableByteArrayInputStream> BYTE_ARRAY_IN = ThreadLocal
+        .withInitial(ReusableByteArrayInputStream::new);
+
+    private static final ThreadLocal<ReusableByteBufferInputStream> BYTE_BUFFER_IN = ThreadLocal
+        .withInitial(ReusableByteBufferInputStream::new);
+>>>>>>> 1.9.2
 
     @Override
     public D decode(InputStream stream) throws IOException {
